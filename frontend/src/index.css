@@ -1,0 +1,386 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Background Colors */
+    --bg-primary: #0a0e17;
+    --bg-secondary: #111827;
+    --bg-tertiary: #1a2234;
+    --bg-hover: #1f2937;
+    --bg-elevated: #252d3d;
+    
+    /* Accent Colors */
+    --accent-primary: #40ffa9;
+    --accent-secondary: #0d7f54;
+    --accent-glow: rgba(64, 255, 169, 0.15);
+    
+    /* Semantic Colors */
+    --buy-green: #40ffa9;
+    --buy-green-dim: rgba(64, 255, 169, 0.1);
+    --sell-red: #ff6b6b;
+    --sell-red-dim: rgba(255, 107, 107, 0.1);
+    
+    /* Text Colors */
+    --text-primary: #ffffff;
+    --text-secondary: #9ca3af;
+    --text-muted: #6b7280;
+    
+    /* Border Colors */
+    --border-primary: rgba(255, 255, 255, 0.08);
+    --border-accent: rgba(64, 255, 169, 0.3);
+    
+    /* Shadcn overrides */
+    --background: 220 25% 5%;
+    --foreground: 0 0% 100%;
+    --card: 220 20% 8%;
+    --card-foreground: 0 0% 100%;
+    --popover: 220 20% 8%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 152 100% 62%;
+    --primary-foreground: 220 25% 5%;
+    --secondary: 220 15% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 220 15% 15%;
+    --muted-foreground: 220 10% 60%;
+    --accent: 152 100% 62%;
+    --accent-foreground: 220 25% 5%;
+    --destructive: 0 70% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 15% 15%;
+    --input: 220 15% 15%;
+    --ring: 152 100% 62%;
+    --radius: 0.5rem;
+    
+    /* Animation Easings */
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-[#0a0e17] text-white antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow-x: hidden;
+  }
+  
+  /* Monospace font for numbers */
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer components {
+  /* Glass Effect */
+  .glass {
+    @apply backdrop-blur-xl;
+    background: rgba(17, 24, 39, 0.8);
+    border: 1px solid var(--border-primary);
+  }
+  
+  .glass-panel {
+    @apply backdrop-blur-md;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+  }
+  
+  /* Gradient Text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-[#40ffa9] to-[#0d7f54] bg-clip-text text-transparent;
+  }
+  
+  /* Buy/Sell Colors */
+  .text-buy {
+    color: var(--buy-green);
+  }
+  
+  .text-sell {
+    color: var(--sell-red);
+  }
+  
+  .bg-buy-dim {
+    background: var(--buy-green-dim);
+  }
+  
+  .bg-sell-dim {
+    background: var(--sell-red-dim);
+  }
+  
+  /* Button Styles */
+  .btn-primary {
+    @apply relative overflow-hidden bg-[#40ffa9] text-[#0a0e17] font-semibold px-4 py-2.5 rounded-lg transition-all duration-200;
+  }
+  
+  .btn-primary:hover {
+    @apply brightness-110;
+    box-shadow: 0 0 20px rgba(64, 255, 169, 0.3);
+  }
+  
+  .btn-secondary {
+    @apply relative bg-[#1a2234] text-white font-medium px-4 py-2.5 rounded-lg border border-white/10 transition-all duration-200;
+  }
+  
+  .btn-secondary:hover {
+    @apply bg-[#252d3d] border-white/20;
+  }
+  
+  /* Tab Styles */
+  .tab-active {
+    @apply text-[#40ffa9] border-b-2 border-[#40ffa9];
+  }
+  
+  .tab-inactive {
+    @apply text-[#6b7280] hover:text-white transition-colors;
+  }
+  
+  /* Input Styles */
+  .input-trading {
+    @apply bg-[#0a0e17] border border-white/10 rounded-lg px-3 py-2 text-white placeholder:text-[#6b7280] focus:border-[#40ffa9]/50 focus:outline-none transition-colors;
+  }
+  
+  /* Card Hover */
+  .card-hover {
+    @apply transition-all duration-200;
+  }
+  
+  .card-hover:hover {
+    @apply bg-[#1f2937];
+  }
+  
+  /* Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 2px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #4b5563;
+  }
+  
+  /* Animations */
+  @keyframes flash-green {
+    0%, 100% { background: transparent; }
+    50% { background: rgba(64, 255, 169, 0.2); }
+  }
+  
+  @keyframes flash-red {
+    0%, 100% { background: transparent; }
+    50% { background: rgba(255, 107, 107, 0.2); }
+  }
+  
+  .flash-green {
+    animation: flash-green 300ms ease-out;
+  }
+  
+  .flash-red {
+    animation: flash-red 300ms ease-out;
+  }
+  
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .animate-slide-in-right {
+    animation: slideInRight 0.4s var(--ease-out-expo);
+  }
+  
+  .animate-slide-in-up {
+    animation: slideInUp 0.4s var(--ease-out-expo);
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.3s var(--ease-smooth);
+  }
+  
+  /* Price Up/Down */
+  .price-up {
+    color: var(--buy-green);
+  }
+  
+  .price-down {
+    color: var(--sell-red);
+  }
+  
+  /* Order Book Depth Bar */
+  .depth-bar-green {
+    background: linear-gradient(90deg, rgba(64, 255, 169, 0.2) 0%, transparent 100%);
+  }
+
+  .depth-bar-red {
+    background: linear-gradient(90deg, rgba(255, 107, 107, 0.2) 0%, transparent 100%);
+  }
+
+  /* Feature Cards - Initial State for GSAP Animation */
+  .feature-card {
+    opacity: 0;
+    transform: translateY(50px);
+    will-change: transform, opacity;
+  }
+
+  /* Stat Cards - Initial State for GSAP Animation */
+  .stat-card {
+    opacity: 0;
+    transform: translateY(40px);
+    will-change: transform, opacity;
+  }
+
+  /* Chart Container - Initial State for GSAP Animation */
+  .chart-container {
+    opacity: 0;
+    transform: scale(0.98);
+    will-change: transform, opacity;
+  }
+
+  /* Trading Cards - Initial State for GSAP Animation */
+  .trading-card {
+    opacity: 0;
+    transform: translateY(60px);
+    will-change: transform, opacity;
+  }
+
+  /* Market Row - Initial State for GSAP Animation */
+  .market-row {
+    opacity: 0;
+    transform: translateY(20px);
+    will-change: transform, opacity;
+  }
+
+  /* Hero Elements - Initial States for GSAP Animation */
+  .hero-badge {
+    opacity: 0;
+    transform: translateY(20px);
+    will-change: transform, opacity;
+  }
+
+  .hero-title-line {
+    opacity: 0;
+    transform: translateY(40px);
+    will-change: transform, opacity;
+  }
+
+  .hero-subtitle {
+    opacity: 0;
+    transform: translateY(30px);
+    will-change: transform, opacity;
+  }
+
+  .hero-cta {
+    opacity: 0;
+    transform: translateY(20px);
+    will-change: transform, opacity;
+  }
+
+  .hero-stats {
+    opacity: 0;
+    transform: translateY(20px);
+    will-change: transform, opacity;
+  }
+
+  .hero-image {
+    opacity: 0;
+    transform: scale(0.9);
+    will-change: transform, opacity;
+  }
+
+  /* Animate Float Keyframe */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Text ellipsis */
+  .text-ellipsis {
+    @apply overflow-hidden text-ellipsis whitespace-nowrap;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* Disable GSAP initial states for reduced motion */
+  .feature-card,
+  .stat-card,
+  .trading-card,
+  .market-row,
+  .hero-badge,
+  .hero-title-line,
+  .hero-subtitle,
+  .hero-cta,
+  .hero-stats,
+  .hero-image,
+  .chart-container {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
