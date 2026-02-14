@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import LoginModal from './components/LoginModal';
 import LandingPage from './pages/LandingPage';
 import TradingPage from './pages/TradingPage';
 import MarketsPage from './pages/MarketsPage';
 import { PortfolioPage } from './pages/PortfolioPage';
-import { Toaster } from '@/components/ui/sonner';
+import { NotFound404 } from './pages/NotFound404';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -36,37 +36,26 @@ function App() {
         <Navbar 
           scrolled={scrolled} 
           isLoggedIn={isLoggedIn} 
-          onLoginClick={() => setShowLoginModal(true)}
+          onLoginClick={handleLogin}
           onLogout={handleLogout}
         />
-        
+
+        {showLoginModal && <LoginModal 
+          isOpen={showLoginModal} 
+          onClose={() => setShowLoginModal(false)}
+          onLogin={handleLogin}
+        />}
+
         <Routes>
           <Route path="/" element={<LandingPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
           <Route path="/trade" element={<TradingPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
           <Route path="/markets" element={<MarketsPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
           <Route path="/portfolio" element={<PortfolioPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route path="*" element={<NotFound404 />} />
         </Routes>
-
-        <LoginModal 
-          isOpen={showLoginModal} 
-          onClose={() => setShowLoginModal(false)}
-          onLogin={handleLogin}
-        />
-        
-        <Toaster 
-          position="top-right" 
-          toastOptions={{
-            style: {
-              background: '#111827',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              color: '#fff',
-            },
-          }}
-        />
       </div>
     </Router>
   );
-}
+};
 
 export default App;
