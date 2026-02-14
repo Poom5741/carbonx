@@ -1,5 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { AuthButton } from './AuthButton'
 
 interface NavLink {
   name: string
@@ -35,14 +36,7 @@ export const PortfolioHeader: React.FC<PortfolioHeaderProps> = ({ isLoggedIn, on
             </Link>
           ))}
         </nav>
-        {!isLoggedIn && (
-          <button
-            onClick={onLoginClick}
-            className="px-6 py-2 bg-[#40ffa9] text-black font-semibold rounded-lg hover:bg-[#34cc87] transition-colors"
-          >
-            Connect
-          </button>
-        )}
+        <AuthButton isLoggedIn={isLoggedIn} onLoginClick={onLoginClick} />
       </div>
     </header>
   )
