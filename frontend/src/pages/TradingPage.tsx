@@ -591,7 +591,7 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
                       placeholder="0.00"
-                      className="input-trading"
+                      className="input-trade"
                     />
                   </div>
                 )}
@@ -602,7 +602,7 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="0.00"
-                    className="input-trading"
+                    className="input-trade"
                   />
                 </div>
               </div>
@@ -827,7 +827,7 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     placeholder="0.00"
-                    className="input-trading text-right font-mono"
+                    className="input-trade text-right font-mono"
                   />
                 </div>
               )}
@@ -841,7 +841,7 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="0.00"
-                  className="input-trading text-right font-mono"
+                  className="input-trade text-right font-mono"
                 />
               </div>
             </div>

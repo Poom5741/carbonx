@@ -260,7 +260,7 @@ const LandingPage = ({ isLoggedIn, onLoginClick }: LandingPageProps) => {
               </p>
 
               <div className="hero-cta flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-10">
-                <Link to="/trading">
+                <Link to="/trade">
                   <Button className="btn-primary text-base px-8 py-3">
                     Start Trading
                     <ArrowRight className="w-5 h-5 ml-2" />
@@ -394,7 +394,7 @@ const LandingPage = ({ isLoggedIn, onLoginClick }: LandingPageProps) => {
                   </div>
                 </div>
 
-                <Link to="/trading">
+                <Link to="/trade">
                   <Button className="w-full btn-primary">
                     Trade {pair.symbol}
                   </Button>
@@ -448,7 +448,7 @@ const LandingPage = ({ isLoggedIn, onLoginClick }: LandingPageProps) => {
             Join the future of carbon credit trading. Connect your wallet and start trading RECs, TVERs, and more in minutes.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/trading">
+            <Link to="/trade">
               <Button className="btn-primary text-lg px-8 py-4">
                 {isLoggedIn ? 'Go to Trading' : 'Connect Wallet'}
                 <ArrowRight className="w-5 h-5 ml-2" />

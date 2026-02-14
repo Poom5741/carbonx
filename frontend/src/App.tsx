@@ -42,7 +42,6 @@ function App() {
         
         <Routes>
           <Route path="/" element={<LandingPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
-          <Route path="/trading" element={<TradingPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
           <Route path="/trade" element={<TradingPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
           <Route path="/markets" element={<MarketsPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
           <Route path="/portfolio" element={<PortfolioPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
