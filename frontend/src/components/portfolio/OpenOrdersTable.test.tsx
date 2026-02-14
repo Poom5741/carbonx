@@ -1,14 +1,15 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
 import { OpenOrdersTable } from './OpenOrdersTable'
+import type { Order } from './OpenOrdersTable'
 
 describe('OpenOrdersTable', () => {
-  const mockOrders = [
+  const mockOrders: Order[] = [
     {
       id: '1',
       symbol: 'BTC/USDT',
       type: 'limit',
-      side: 'buy',
+      side: 'buy' as const,
       price: '42,000.00',
       amount: '0.5',
       filled: '0.2',
@@ -19,7 +20,7 @@ describe('OpenOrdersTable', () => {
       id: '2',
       symbol: 'ETH/USDT',
       type: 'market',
-      side: 'sell',
+      side: 'sell' as const,
       price: '1,750.00',
       amount: '5',
       filled: '5',

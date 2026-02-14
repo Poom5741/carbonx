@@ -56,7 +56,7 @@ describe('HoldingsTable', () => {
   })
 
   it('displays positive changes in green', () => {
-    const { container } = render(<HoldingsTable holdings={mockHoldings} />)
+    render(<HoldingsTable holdings={mockHoldings} />)
 
     const greenElement = screen.getByText('+2.5%')
     expect(greenElement).toBeInTheDocument()
@@ -64,7 +64,7 @@ describe('HoldingsTable', () => {
   })
 
   it('displays negative changes in red', () => {
-    const { container } = render(<HoldingsTable holdings={mockHoldings} />)
+    render(<HoldingsTable holdings={mockHoldings} />)
 
     const redElement = screen.getByText('-1.2%')
     expect(redElement).toBeInTheDocument()

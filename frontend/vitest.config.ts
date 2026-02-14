@@ -8,11 +8,10 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/vitest.setup.ts',
+    pool: 'forks',
     poolOptions: {
-      threads: {
-        singleThread: true,
-        isolate: false,
-      },
+      singleThread: true,
+      isolate: false,
     },
     coverage: {
       provider: 'v8',
