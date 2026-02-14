@@ -17,5 +17,12 @@ export const AuthButton: React.FC<AuthButtonProps> = ({ isLoggedIn, onLoginClick
     )
   }
 
-  return null
+  return (
+    <div className="flex items-center gap-4">
+      <span className="text-gray-400 text-sm">0x1234...5678</span>
+      <button className="text-gray-400 hover:text-white transition-colors">
+        ▼
+      </button>
+    </div>
+  )
 }
