@@ -3,6 +3,7 @@ import { PortfolioHeader } from '@/components/portfolio/PortfolioHeader'
 import { SummaryCard } from '@/components/portfolio/SummaryCard'
 import { HoldingsTable } from '@/components/portfolio/HoldingsTable'
 import { formatCurrency, formatPercentage } from '@/utils/formatters'
+import { ResponsiveGrid } from '@/utils/responsive'
 
 interface PortfolioPageProps {
   isLoggedIn: boolean
@@ -60,7 +61,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn, onLogi
           Portfolio <span className="text-[#40ffa9]">Overview</span>
         </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className={`grid ${ResponsiveGrid.summaryCards} gap-4 mb-8`}>
           <SummaryCard
             testId="total-balance-card"
             label="Total Balance"
