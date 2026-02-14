@@ -1,18 +1,11 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
 
 interface PortfolioPageProps {
   isLoggedIn: boolean
   onLoginClick: () => void
 }
 
-export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn, onLoginClick }) => {
-  const navLinks = [
-    { name: 'Trade', path: '/trade' },
-    { name: 'Markets', path: '/markets' },
-    { name: 'Portfolio', path: '/portfolio' },
-  ]
-
+export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn: _isLoggedIn, onLoginClick: _onLoginClick }) => {
   const holdings = [
     {
       symbol: 'REC',
@@ -41,36 +34,8 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn, onLogi
 
   return (
     <div data-testid="portfolio-page" className="min-h-screen bg-[#0a0e17]">
-      {/* Header */}
-      <header className="border-b border-gray-800">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="text-2xl font-bold text-white">
-            CarbonX
-          </Link>
-          <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                {link.name}
-              </Link>
-            ))}
-          </nav>
-          {!isLoggedIn && (
-            <button
-              onClick={onLoginClick}
-              className="px-6 py-2 bg-[#40ffa9] text-black font-semibold rounded-lg hover:bg-[#34cc87] transition-colors"
-            >
-              Connect
-            </button>
-          )}
-        </div>
-      </header>
-
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 pt-24">
         <h1 className="text-3xl font-bold text-white mb-8">
           Portfolio <span className="text-[#40ffa9]">Overview</span>
         </h1>
@@ -120,7 +85,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn, onLogi
                     </td>
                     <td className="py-4 px-4 text-white">{holding.amount}</td>
                     <td className="py-4 px-4 text-white">
-                      ${(holding.amount * holding.currentPrice).toFixed(2)}
+                      {'$' + (holding.amount * holding.currentPrice).toFixed(2)}
                     </td>
                     <td className={`py-4 px-4 ${holding.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {holding.change24h >= 0 ? '+' : ''}{holding.change24h.toFixed(1)}%

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
+import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import Navbar, { type NavbarMode } from './components/Navbar';
 import LoginModal from './components/LoginModal';
 import LandingPage from './pages/LandingPage';
 import TradingPage from './pages/TradingPage';
@@ -8,18 +8,18 @@ import MarketsPage from './pages/MarketsPage';
 import { PortfolioPage } from './pages/PortfolioPage';
 import { NotFound404 } from './pages/NotFound404';
 
-function App() {
+function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  // Determine navbar mode based on route
+  const getNavbarMode = (): NavbarMode => {
+    if (location.pathname === '/') return 'landing';
+    return 'app';
+  };
+
+  const navbarMode = getNavbarMode();
 
   const handleLogin = () => {
     setIsLoggedIn(true);
@@ -31,14 +31,13 @@ function App() {
   };
 
   return (
-    <Router>
-      <div className="min-h-screen bg-[#0a0e17] text-white">
-        <Navbar 
-          scrolled={scrolled} 
-          isLoggedIn={isLoggedIn} 
-          onLoginClick={handleLogin}
-          onLogout={handleLogout}
-        />
+    <>
+      <Navbar
+        mode={navbarMode}
+        isLoggedIn={isLoggedIn}
+        onLoginClick={() => setShowLoginModal(true)}
+        onLogout={handleLogout}
+      />
 
         {showLoginModal && <LoginModal 
           isOpen={showLoginModal} 
@@ -47,15 +46,30 @@ function App() {
         />}
 
         <Routes>
-          <Route path="/" element={<LandingPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
-          <Route path="/trade" element={<TradingPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
-          <Route path="/markets" element={<MarketsPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
-          <Route path="/portfolio" element={<PortfolioPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
-          <Route path="*" element={<NotFound404 />} />
-        </Routes>
+        <Route path="/" element={<LandingPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
+        <Route path="/trade" element={<TradingPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
+        <Route path="/markets" element={<MarketsPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
+        <Route path="/portfolio" element={<PortfolioPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
+        <Route path="*" element={<NotFound404 />} />
+      </Routes>
+
+      {showLoginModal && <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onLogin={handleLogin}
+      />}
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <div className="min-h-screen bg-[#0a0e17] text-white">
+        <AppContent />
       </div>
     </Router>
   );
-};
+}
 
 export default App;

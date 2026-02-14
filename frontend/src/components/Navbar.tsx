@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Wallet, User, LogOut, ChevronDown, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,16 +9,35 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+export type NavbarMode = 'landing' | 'app';
+
 interface NavbarProps {
-  scrolled: boolean;
+  mode: NavbarMode;
+  scrolled?: boolean; // Only used when mode='landing' for external scroll state
   isLoggedIn: boolean;
   onLoginClick: () => void;
   onLogout: () => void;
 }
 
-const Navbar = ({ scrolled, isLoggedIn, onLoginClick, onLogout }: NavbarProps) => {
+const Navbar = ({ mode, scrolled: _externalScrolled, isLoggedIn, onLoginClick, onLogout }: NavbarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [internalScrolled, setInternalScrolled] = useState(false);
   const location = useLocation();
+
+  // For landing mode, track scroll position internally
+  useEffect(() => {
+    if (mode !== 'landing') return;
+
+    const handleScroll = () => {
+      setInternalScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [mode]);
+
+  // Determine scrolled state based on mode
+  const isScrolled = mode === 'landing' ? internalScrolled : true;
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -32,7 +51,7 @@ const Navbar = ({ scrolled, isLoggedIn, onLoginClick, onLogout }: NavbarProps) =
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
+        isScrolled
           ? 'h-14 lg:h-16 bg-[#0a0e17]/95 backdrop-blur-xl border-b border-white/5'
           : 'h-14 lg:h-16 bg-transparent'
       }`}
@@ -69,14 +88,14 @@ const Navbar = ({ scrolled, isLoggedIn, onLoginClick, onLogout }: NavbarProps) =
           {/* Right Side Actions */}
           <div className="flex items-center gap-2">
             {/* Notification Bell - Desktop */}
-            <button className="hidden md:flex p-2 text-[#9ca3af] hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+            <button aria-label="Notifications" className="hidden md:flex p-2 text-[#9ca3af] hover:text-white hover:bg-white/5 rounded-lg transition-colors">
               <Bell className="w-5 h-5" />
             </button>
 
             {isLoggedIn ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">
+                  <button aria-label="User menu" className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">
                     <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#40ffa9]/30 to-[#0d7f54]/30 flex items-center justify-center border border-[#40ffa9]/30">
                       <User className="w-3.5 h-3.5 text-[#40ffa9]" />
                     </div>
@@ -93,9 +112,12 @@ const Navbar = ({ scrolled, isLoggedIn, onLoginClick, onLogout }: NavbarProps) =
                     <Wallet className="w-4 h-4 mr-2" />
                     Wallet
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="hover:bg-white/5 cursor-pointer text-[#ff6b6b] focus:bg-white/5 focus:text-[#ff6b6b]"
-                    onClick={onLogout}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onLogout();
+                    }}
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     Disconnect
@@ -115,6 +137,7 @@ const Navbar = ({ scrolled, isLoggedIn, onLoginClick, onLogout }: NavbarProps) =
 
             {/* Mobile Menu Button */}
             <button
+              aria-label="Toggle menu"
               className="md:hidden p-2 text-[#9ca3af] hover:text-white hover:bg-white/5 rounded-lg transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >

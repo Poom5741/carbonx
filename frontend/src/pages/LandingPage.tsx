@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { 
-  ArrowRight, TrendingUp, Shield, Zap, Globe, 
-  CheckCircle, BarChart3, Leaf, Wind, Sun, 
-  Wallet, Menu, X, ChevronDown
+import {
+  ArrowRight, TrendingUp, Shield, Zap, Globe,
+  CheckCircle, BarChart3, Leaf, Wind, Sun,
+  ChevronDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -13,13 +13,12 @@ gsap.registerPlugin(ScrollTrigger);
 
 interface LandingPageProps {
   isLoggedIn: boolean;
-  onLoginClick: () => void;
+  onLoginClick?: () => void;
 }
 
-const LandingPage = ({ isLoggedIn, onLoginClick }: LandingPageProps) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+const LandingPage = ({ isLoggedIn, onLoginClick: _onLoginClick }: LandingPageProps) => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
-  
+
   const heroRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
@@ -157,81 +156,6 @@ const LandingPage = ({ isLoggedIn, onLoginClick }: LandingPageProps) => {
 
   return (
     <div className="min-h-screen bg-[#0a0e17]">
-      {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0e17]/80 backdrop-blur-xl border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#40ffa9] to-[#0d7f54] flex items-center justify-center">
-                <span className="text-[#0a0e17] font-bold text-lg">C</span>
-              </div>
-              <span className="font-semibold text-lg">Carbon<span className="text-[#40ffa9]">X</span></span>
-            </Link>
-
-            {/* Desktop Nav */}
-            <div className="hidden md:flex items-center gap-1">
-              {['Home', 'Markets', 'Trading'].map((item) => (
-                <Link
-                  key={item}
-                  to={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
-                  className="px-4 py-2 text-sm text-[#9ca3af] hover:text-white hover:bg-white/5 rounded-lg transition-all"
-                >
-                  {item}
-                </Link>
-              ))}
-            </div>
-
-            {/* CTA */}
-            <div className="hidden md:flex items-center gap-3">
-              {isLoggedIn ? (
-                <div className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg">
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#40ffa9]/30 to-[#0d7f54]/30 flex items-center justify-center">
-                    <span className="text-[#40ffa9] text-xs">0x</span>
-                  </div>
-                  <span className="text-sm">0x7a...3f9</span>
-                </div>
-              ) : (
-                <Button onClick={onLoginClick} className="btn-primary text-sm">
-                  <Wallet className="w-4 h-4 mr-2" />
-                  Connect Wallet
-                </Button>
-              )}
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button 
-              className="md:hidden p-2 hover:bg-white/5 rounded-lg"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-[#0a0e17] border-t border-white/5 p-4">
-            <div className="flex flex-col gap-2">
-              {['Home', 'Markets', 'Trading'].map((item) => (
-                <Link
-                  key={item}
-                  to={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
-                  className="px-4 py-3 text-[#9ca3af] hover:text-white hover:bg-white/5 rounded-lg"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {item}
-                </Link>
-              ))}
-              <Button onClick={onLoginClick} className="btn-primary mt-2">
-                <Wallet className="w-4 h-4 mr-2" />
-                Connect Wallet
-              </Button>
-            </div>
-          </div>
-        )}
-      </nav>
-
       {/* Hero Section */}
       <section ref={heroRef} className="relative pt-24 lg:pt-32 pb-16 lg:pb-24 overflow-hidden">
         {/* Background Effects */}

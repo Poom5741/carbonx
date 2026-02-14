@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { gsap } from 'gsap';
-import { 
-  Search, Star, Wallet, Settings, 
-  Bell, CandlestickChart, BarChart3, Activity, Layers,
-  History, FileText, PieChart,
-  X, Menu
+import {
+  Search, Star, CandlestickChart, BarChart3, Activity, Layers,
+  History, FileText, PieChart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,9 +41,8 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeMarketTab, setActiveMarketTab] = useState('all');
   const [bottomTab, setBottomTab] = useState('orders');
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileActiveView, setMobileActiveView] = useState<'chart' | 'book' | 'trade'>('chart');
-  
+
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<ReturnType<typeof createChart> | null>(null);
   const candlestickSeriesRef = useRef<ReturnType<ReturnType<typeof createChart>['addSeries']> | null>(null);
@@ -263,78 +260,7 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0a0e17] flex flex-col">
-      {/* Header */}
-      <header className="h-14 lg:h-16 bg-[#0a0e17]/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-3 lg:px-4 sticky top-0 z-50">
-        <div className="flex items-center gap-4">
-          {/* Mobile Menu Button */}
-          <button 
-            className="lg:hidden p-2 hover:bg-white/5 rounded-lg"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-          
-          {/* Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#40ffa9] to-[#0d7f54] flex items-center justify-center">
-              <span className="text-[#0a0e17] font-bold text-sm">C</span>
-            </div>
-            <span className="font-semibold hidden sm:block">Carbon<span className="text-[#40ffa9]">X</span></span>
-          </div>
-
-          {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-1 ml-6">
-            {['Trading', 'Markets'].map((item) => (
-              <a
-                key={item}
-                href={`/${item.toLowerCase()}`}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  item === 'Trading' ? 'text-[#40ffa9] bg-[#40ffa9]/10' : 'text-[#9ca3af] hover:text-white hover:bg-white/5'
-                }`}
-              >
-                {item}
-              </a>
-            ))}
-          </nav>
-        </div>
-
-        {/* Right Actions */}
-        <div className="flex items-center gap-2">
-          <button className="p-2 text-[#9ca3af] hover:text-white hover:bg-white/5 rounded-lg transition-colors">
-            <Bell className="w-5 h-5" />
-          </button>
-          <button className="p-2 text-[#9ca3af] hover:text-white hover:bg-white/5 rounded-lg transition-colors hidden sm:block">
-            <Settings className="w-5 h-5" />
-          </button>
-          <Button 
-            onClick={onLoginClick}
-            className="btn-primary text-sm py-2 px-4 flex items-center gap-2"
-          >
-            <Wallet className="w-4 h-4" />
-            <span className="hidden sm:inline">{isLoggedIn ? '0x7a...3f9' : 'Connect'}</span>
-          </Button>
-        </div>
-      </header>
-
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-14 bg-[#0a0e17]/95 backdrop-blur-xl z-40 p-4">
-          <nav className="flex flex-col gap-2">
-            {['Trade', 'Markets', 'Portfolio'].map((item) => (
-              <a
-                key={item}
-                href={`/${item.toLowerCase()}`}
-                className="px-4 py-3 text-lg font-medium rounded-lg text-[#9ca3af] hover:text-white hover:bg-white/5"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {item}
-              </a>
-            ))}
-          </nav>
-        </div>
-      )}
-
+    <div className="min-h-screen bg-[#0a0e17] flex flex-col pt-14 lg:pt-16">
       {/* Mobile View Toggle */}
       <div className="lg:hidden flex border-b border-white/5">
         {[
