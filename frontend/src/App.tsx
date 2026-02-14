@@ -5,6 +5,7 @@ import LoginModal from './components/LoginModal';
 import LandingPage from './pages/LandingPage';
 import TradingPage from './pages/TradingPage';
 import MarketsPage from './pages/MarketsPage';
+import { PortfolioPage } from './pages/PortfolioPage';
 import { Toaster } from '@/components/ui/sonner';
 
 function App() {
@@ -42,7 +43,9 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
           <Route path="/trading" element={<TradingPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
+          <Route path="/trade" element={<TradingPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
           <Route path="/markets" element={<MarketsPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
+          <Route path="/portfolio" element={<PortfolioPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
 

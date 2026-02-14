@@ -23,7 +23,8 @@ const Navbar = ({ scrolled, isLoggedIn, onLoginClick, onLogout }: NavbarProps) =
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Markets', path: '/markets' },
-    { name: 'Trading', path: '/trading' },
+    { name: 'Trading', path: '/trade' },
+    { name: 'Portfolio', path: '/portfolio' },
   ];
 
   const isActive = (path: string) => location.pathname === path;
