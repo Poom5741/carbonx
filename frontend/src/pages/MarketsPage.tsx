@@ -224,7 +224,7 @@ const MarketsPage = ({ isLoggedIn, onLoginClick }: MarketsPageProps) => {
                   >
                     <Star className={`w-4 h-4 ${favorites.includes(market.symbol) ? 'fill-current' : ''}`} />
                   </button>
-                  <Link to="/trade" className="flex items-center gap-3 group">
+                  <Link to="/markets" className="flex items-center gap-3 group">
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#40ffa9]/20 to-[#0d7f54]/20 flex items-center justify-center">
                       <span className="text-[#40ffa9] font-bold text-sm">{market.symbol[0]}</span>
                     </div>
@@ -262,7 +262,7 @@ const MarketsPage = ({ isLoggedIn, onLoginClick }: MarketsPageProps) => {
 
                 {/* Action */}
                 <div className="col-span-2 lg:col-span-1 text-right">
-                  <Link to="/trade">
+                  <Link to="/markets">
                     <Button size="sm" className="btn-primary text-xs px-3 py-1.5">
                       Trade
                     </Button>
@@ -297,7 +297,7 @@ const MarketsPage = ({ isLoggedIn, onLoginClick }: MarketsPageProps) => {
               <p className="text-sm text-[#9ca3af] mb-4">{cat.desc}</p>
               <div className="flex flex-wrap gap-2">
                 {cat.pairs.map((pair) => (
-                  <Link key={pair} to="/trade" className="px-2 py-1 text-xs bg-[#0a0e17] rounded text-[#9ca3af] hover:text-white">
+                  <Link key={pair} to="/markets" className="px-2 py-1 text-xs bg-[#0a0e17] rounded text-[#9ca3af] hover:text-white">
                     {pair}
                   </Link>
                 ))}
