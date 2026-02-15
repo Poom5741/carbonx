@@ -1,7 +1,19 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 import { useTrading } from '@/hooks/useTrading'
+import { useResetDemo } from '@/hooks/useResetDemo'
 import PnlChart from '@/components/portfolio/SimplePnlChart'
 
 interface PortfolioPageProps {
@@ -11,21 +23,29 @@ interface PortfolioPageProps {
 
 export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
   const navigate = useNavigate()
+  const [showResetDialog, setShowResetDialog] = useState(false)
+
   const {
     orders,
     portfolio,
     orderHistory,
     cancelOrder,
-    resetData,
     getTotalValue
   } = useTrading()
+
+  const { isResetting, resetDemo } = useResetDemo()
 
   const handleCancelOrder = (orderId: string) => {
     cancelOrder(orderId)
   }
 
-  const handleReset = () => {
-    resetData()
+  const handleResetClick = () => {
+    setShowResetDialog(true)
+  }
+
+  const handleConfirmReset = async () => {
+    setShowResetDialog(false)
+    await resetDemo()
   }
 
   // Calculate total assets count (unique tokens)
@@ -52,10 +72,19 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
             <Button
               variant="outline"
               size="sm"
-              onClick={handleReset}
-              className="border-white/20 hover:bg-white/10"
+              onClick={handleResetClick}
+              disabled={isResetting}
+              className="border-white/20 hover:bg-white/10 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              data-testid="reset-demo-button"
             >
-              Reset Demo
+              {isResetting ? (
+                <>
+                  <Spinner size="sm" className="mr-2" />
+                  Resetting...
+                </>
+              ) : (
+                'Reset Demo'
+              )}
             </Button>
           )}
         </div>
@@ -83,7 +112,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
           </div>
           <div data-testid="daily-pnl-card" className="bg-[#111827] rounded-xl p-6">
             <p className="text-gray-400 text-sm">24h Pnl</p>
-            <p className="text-2xl font-bold mt-2">
+            <p className={`text-2xl font-bold mt-2 ${pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               {pnl >= 0 ? '+' : ''}{pnl.toFixed(2)} ({pnlPercent.toFixed(1)}%)
             </p>
           </div>
@@ -250,6 +279,30 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
           </div>
         )}
       </main>
+
+      {/* Reset Confirmation Dialog */}
+      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <AlertDialogContent className="bg-[#111827] border-white/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Reset Demo Data?</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400">
+              This will clear all your current trading data and replace it with fresh demo data.
+              Your current portfolio, orders, and history will be replaced.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-white/20 text-white hover:bg-white/10">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmReset}
+              className="bg-[#40ffa9] text-black hover:bg-[#34cc8a] font-semibold"
+            >
+              Reset Demo
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

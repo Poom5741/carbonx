@@ -76,11 +76,13 @@ export function useHourlyMatching() {
   const [data, setData] = useState<HourlyData[]>([])
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('day')
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
 
   // Load data on mount
   useEffect(() => {
     const loadData = () => {
       setLoading(true)
+      setError(null)
       try {
         const stored = localStorage.getItem(STORAGE_KEY)
         if (stored) {
@@ -105,9 +107,11 @@ export function useHourlyMatching() {
           date: new Date().toDateString(),
           data: newData,
         }))
-      } catch (error) {
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error('Failed to load energy data')
         console.error('Failed to load hourly matching data:', error)
-        setData(generateMockHourlyData())
+        setError(error)
+        setData(generateMockHourlyData()) // Fallback to mock data
       } finally {
         setLoading(false)
       }
@@ -211,19 +215,48 @@ export function useHourlyMatching() {
     return certificate
   }, [generateCertificate])
 
-  // Refresh data
+  // Refresh data (with error handling)
   const refresh = useCallback(() => {
-    const newData = generateMockHourlyData()
-    setData(newData)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      date: new Date().toDateString(),
-      data: newData,
-    }))
+    setError(null)
+    try {
+      const newData = generateMockHourlyData()
+      setData(newData)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        date: new Date().toDateString(),
+        data: newData,
+      }))
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to refresh data')
+      setError(error)
+    }
+  }, [])
+
+  // Retry function for error recovery
+  const retry = useCallback(() => {
+    setError(null)
+    setLoading(true)
+    // Simulate retry delay
+    setTimeout(() => {
+      try {
+        const newData = generateMockHourlyData()
+        setData(newData)
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          date: new Date().toDateString(),
+          data: newData,
+        }))
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error('Failed to retry data load')
+        setError(error)
+      } finally {
+        setLoading(false)
+      }
+    }, 1000)
   }, [])
 
   return {
     data,
     loading,
+    error,
     timePeriod,
     setTimePeriod,
     cfePercentage,
@@ -235,6 +268,7 @@ export function useHourlyMatching() {
     generateCertificate,
     exportCertificate,
     refresh,
+    retry,
     metadata: LOCATION_METADATA,
   }
 }

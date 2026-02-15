@@ -173,4 +173,59 @@ describe('LivePriceTicker - Recent Trades Ticker (TDG)', () => {
       expect(screen.getByText(/No recent trades/i)).toBeInTheDocument()
     })
   })
+
+  describe('Error States - TDG RED Phase', () => {
+    it('should render loading skeleton when loading prop is true', () => {
+      render(<LivePriceTicker trades={[]} loading={true} />)
+
+      expect(screen.getByTestId('ticker-skeleton')).toBeInTheDocument()
+    })
+
+    it('should display shimmer animation on skeleton', () => {
+      render(<LivePriceTicker trades={[]} loading={true} />)
+
+      const skeleton = screen.getByTestId('ticker-skeleton')
+      expect(skeleton).toHaveClass(/shimmer|animate-shimmer/)
+    })
+
+    it('should render error state when error prop is provided', () => {
+      const mockError = new Error('WebSocket connection failed')
+      render(<LivePriceTicker trades={[]} error={mockError} />)
+
+      expect(screen.getByTestId('ticker-error-state')).toBeInTheDocument()
+    })
+
+    it('should display investor-friendly error message for connection errors', () => {
+      const mockError = new Error('WS_ERR: Handshake failed')
+      render(<LivePriceTicker trades={[]} error={mockError} />)
+
+      // Should NOT show technical error details
+      expect(screen.queryByText(/WS_ERR/i)).not.toBeInTheDocument()
+      expect(screen.queryByText(/Handshake/i)).not.toBeInTheDocument()
+
+      // Should show friendly message
+      expect(screen.getByText(/connection|temporarily|unavailable/i)).toBeInTheDocument()
+    })
+
+    it('should provide reconnect button on error', () => {
+      const mockError = new Error('Connection lost')
+      const onReconnect = vi.fn()
+
+      render(<LivePriceTicker trades={[]} error={mockError} onReconnect={onReconnect} />)
+
+      const reconnectButton = screen.getByRole('button', { name: /reconnect|try again/i })
+      expect(reconnectButton).toBeInTheDocument()
+
+      reconnectButton.click()
+      expect(onReconnect).toHaveBeenCalled()
+    })
+
+    it('should use brand color #40ffa9 for reconnect button', () => {
+      const mockError = new Error('Test error')
+      render(<LivePriceTicker trades={[]} error={mockError} />)
+
+      const reconnectButton = screen.getByRole('button', { name: /reconnect|try again/i })
+      expect(reconnectButton).toHaveClass(/#40ffa9|40ffa9/)
+    })
+  })
 })

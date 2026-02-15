@@ -1,10 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import type { TimePeriod, HourlyData } from '../../hooks/matching/useHourlyMatching'
+import { ErrorState } from '../common/ErrorBoundary'
+import { LoadingState } from '../common/LoadingState'
 
 interface HourlyMatchingChartProps {
   data: HourlyData[]
   loading?: boolean
+  error?: Error | null
+  onRetry?: () => void
   onPeriodChange?: (period: TimePeriod) => void
   className?: string
 }
@@ -12,6 +16,8 @@ interface HourlyMatchingChartProps {
 export const HourlyMatchingChart: React.FC<HourlyMatchingChartProps> = ({
   data,
   loading = false,
+  error,
+  onRetry,
   onPeriodChange,
   className = '',
 }) => {
@@ -94,6 +100,7 @@ export const HourlyMatchingChart: React.FC<HourlyMatchingChartProps> = ({
         data-testid="hourly-matching-chart"
         className={`bg-gradient-to-br from-[#111827] to-[#0a0e17] rounded-2xl p-6 border border-white/5 ${className}`}
       >
+        {/* Header skeleton */}
         <div className="flex justify-between items-center mb-6">
           <div>
             <div className="h-6 w-48 bg-[#1a2234] rounded animate-pulse mb-2" />
@@ -109,13 +116,27 @@ export const HourlyMatchingChart: React.FC<HourlyMatchingChartProps> = ({
             ))}
           </div>
         </div>
-        <div className="h-64 flex items-center justify-center">
-          <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-2 border-[#40ffa9]/20 border-t-[#40ffa9]" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="h-8 w-8 bg-[#40ffa9]/20 rounded-full animate-ping" />
-            </div>
-          </div>
+
+        {/* Professional loading skeleton with shimmer */}
+        <LoadingState type="chart" />
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div
+        data-testid="hourly-matching-chart"
+        className={`bg-gradient-to-br from-[#111827] to-[#0a0e17] rounded-2xl p-6 border border-white/5 ${className}`}
+      >
+        <div data-testid="chart-error-state">
+          <ErrorState
+            type="data-load"
+            title="Energy Data Temporarily Unavailable"
+            message="We're having trouble connecting to the energy monitoring system. This happens occasionally during maintenance."
+            onRetry={onRetry}
+          />
         </div>
       </div>
     )

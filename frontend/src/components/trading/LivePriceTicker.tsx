@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react'
 import { ConnectionStatus } from './ConnectionStatus'
+import { ErrorState } from '../common/ErrorBoundary'
+import { LoadingState } from '../common/LoadingState'
 
 export interface Trade {
   price: number
@@ -12,7 +14,10 @@ export interface LivePriceTickerProps {
   trades: Trade[]
   maxTrades?: number
   isConnected?: boolean
+  loading?: boolean
+  error?: Error | null
   onReconnect?: () => void
+  onRetry?: () => void
   className?: string
 }
 
@@ -31,7 +36,10 @@ export const LivePriceTicker: React.FC<LivePriceTickerProps> = ({
   trades,
   maxTrades = 10,
   isConnected = true,
+  loading = false,
+  error,
   onReconnect,
+  onRetry,
   className = ''
 }) => {
   // Format timestamp to HH:MM:SS
@@ -62,6 +70,31 @@ export const LivePriceTicker: React.FC<LivePriceTickerProps> = ({
       .sort((a, b) => b.time - a.time)
       .slice(0, maxTrades)
   }, [trades, maxTrades])
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className={`bg-[#111827] rounded-lg p-4 ${className}`} data-testid="live-price-ticker">
+        <LoadingState type="ticker" />
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className={`bg-[#111827] rounded-lg p-4 ${className}`} data-testid="live-price-ticker">
+        <div data-testid="ticker-error-state">
+          <ErrorState
+            type="data-load"
+            title="Connection Temporarily Unavailable"
+            message="We're having trouble connecting to the trading feed. This happens occasionally during network updates."
+            onRetry={onRetry || onReconnect}
+          />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={`bg-[#111827] rounded-lg p-4 ${className}`} data-testid="live-price-ticker">

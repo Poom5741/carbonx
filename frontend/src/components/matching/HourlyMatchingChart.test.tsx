@@ -129,4 +129,46 @@ describe('HourlyMatchingChart', () => {
     expect(screen.getByText('12:00')).toBeInTheDocument()
     expect(screen.getByText('18:00')).toBeInTheDocument()
   })
+
+  describe('Error States - TDG RED Phase', () => {
+    it('should render error state when error prop is provided', () => {
+      const mockError = new Error('Failed to load energy data')
+      render(<HourlyMatchingChart data={[]} error={mockError} />)
+
+      expect(screen.getByTestId('chart-error-state')).toBeInTheDocument()
+    })
+
+    it('should display investor-friendly error message (no technical jargon)', () => {
+      const mockError = new Error('ECONNREFUSED: Connection refused')
+      render(<HourlyMatchingChart data={[]} error={mockError} />)
+
+      // Should NOT show technical error details
+      expect(screen.queryByText(/ECONNREFUSED/i)).not.toBeInTheDocument()
+      expect(screen.queryByText(/Connection refused/i)).not.toBeInTheDocument()
+
+      // Should show friendly message
+      expect(screen.getByText(/energy data/i)).toBeInTheDocument()
+    })
+
+    it('should provide retry button on error', () => {
+      const mockError = new Error('Network error')
+      const onRetry = vi.fn()
+
+      render(<HourlyMatchingChart data={[]} error={mockError} onRetry={onRetry} />)
+
+      const retryButton = screen.getByRole('button', { name: /try again|retry/i })
+      expect(retryButton).toBeInTheDocument()
+
+      retryButton.click()
+      expect(onRetry).toHaveBeenCalled()
+    })
+
+    it('should use brand color #40ffa9 for retry button', () => {
+      const mockError = new Error('Test error')
+      render(<HourlyMatchingChart data={[]} error={mockError} />)
+
+      const retryButton = screen.getByRole('button', { name: /try again|retry/i })
+      expect(retryButton).toHaveClass(/#40ffa9|40ffa9/)
+    })
+  })
 })
