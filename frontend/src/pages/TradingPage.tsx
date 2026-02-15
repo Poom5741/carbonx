@@ -8,10 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { createChart, CandlestickSeries, HistogramSeries, type CandlestickData, type HistogramData } from 'lightweight-charts';
+import { createChart, CandlestickSeries, HistogramSeries } from 'lightweight-charts';
 import { useTrading } from '@/hooks/useTrading';
 import { useRealtimePrices } from '@/hooks/useRealtimePrices';
 import { useOrderBook } from '@/hooks/useOrderBook';
+import { useChartData, type Timeframe } from '@/hooks/useChartData';
+import { getDataPointCount, type TimeframeKey } from '@/lib/timeframe';
+import TimeframeSelector, { type TimeframeValue } from '@/components/TimeframeSelector';
 import { LoadingState } from '@/components/common/LoadingState';
 
 interface TradingPageProps {
@@ -22,6 +25,22 @@ interface TradingPageProps {
 const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
   // Initial load state for smooth loading skeleton
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  // Active timeframe state with localStorage persistence
+  const getInitialTimeframe = (): TimeframeValue => {
+    try {
+      const saved = localStorage.getItem('carbonx_chart_timeframe');
+      // Validate that the saved value is a valid timeframe
+      if (saved && ['1m', '5m', '15m', '1H', '4H', '1D', '1W'].includes(saved)) {
+        return saved as TimeframeValue;
+      }
+    } catch (e) {
+      // Ignore localStorage errors
+    }
+    return '15m'; // Default timeframe
+  };
+
+  const [activeTimeframe, setActiveTimeframe] = useState<TimeframeValue>(getInitialTimeframe);
 
   // useTrading hook for real order management with localStorage
   const { orders, portfolio, placeOrder, isPlacingOrder, cancelOrder } = useTrading();
@@ -72,6 +91,11 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
 
   // useOrderBook hook for order book generation with real-time updates
   const orderBook = useOrderBook(currentMarket?.price || 0, 12, 2000);
+
+  // Chart data generation using useChartData hook with timeframe support
+  const dataPointCount = getDataPointCount(activeTimeframe as TimeframeKey);
+  const currentMarketPrice = currentMarket?.price || 100;
+  const { candleData, volumeData } = useChartData(dataPointCount, activeTimeframe as Timeframe, currentMarketPrice);
 
   // Initialize Chart
   useEffect(() => {
@@ -133,44 +157,7 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
     });
     volumeSeriesRef.current = volumeSeries;
 
-    // Generate sample data
-    const generateData = () => {
-      const candleData: CandlestickData[] = [];
-      const volumeData: HistogramData[] = [];
-      const basePrice = currentMarket.price;
-      let currentPrice = basePrice * 0.85;
-      const now = new Date();
-      
-      for (let i = 100; i >= 0; i--) {
-        const time = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-        const open = currentPrice;
-        const change = (Math.random() - 0.45) * basePrice * 0.05;
-        const close = open + change;
-        const high = Math.max(open, close) + Math.random() * basePrice * 0.02;
-        const low = Math.min(open, close) - Math.random() * basePrice * 0.02;
-        const volume = Math.random() * 1000000;
-        
-        candleData.push({
-          time: time.toISOString().split('T')[0],
-          open: parseFloat(open.toFixed(2)),
-          high: parseFloat(high.toFixed(2)),
-          low: parseFloat(low.toFixed(2)),
-          close: parseFloat(close.toFixed(2)),
-        });
-        
-        volumeData.push({
-          time: time.toISOString().split('T')[0],
-          value: volume,
-          color: close >= open ? 'rgba(64, 255, 169, 0.5)' : 'rgba(255, 107, 107, 0.5)',
-        });
-        
-        currentPrice = close;
-      }
-      
-      return { candleData, volumeData };
-    };
-
-    const { candleData, volumeData } = generateData();
+    // Set chart data from useChartData hook
     candlestickSeries.setData(candleData);
     volumeSeries.setData(volumeData);
     chart.timeScale().fitContent();
@@ -206,7 +193,7 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
       window.removeEventListener('resize', handleResize);
       chart.remove();
     };
-  }, [selectedPair, currentMarket?.price]);
+  }, [selectedPair, currentMarket?.price, activeTimeframe, candleData, volumeData]);
 
   // Calculate max sizes for order book depth visualization
   const maxAskSize = orderBook.asks.length > 0 ? Math.max(...orderBook.asks.map(a => a.size)) : 1;
@@ -454,16 +441,10 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
             </div>
 
             {/* Timeframe Selector - Desktop */}
-            <div className="hidden lg:flex items-center gap-1">
-              {['1m', '5m', '15m', '1H', '4H', '1D', '1W'].map((tf) => (
-                <button
-                  key={tf}
-                  className="px-2 py-1 text-xs text-[#9ca3af] hover:text-white hover:bg-white/5 rounded transition-colors"
-                >
-                  {tf}
-                </button>
-              ))}
-            </div>
+            <TimeframeSelector
+              activeTimeframe={activeTimeframe}
+              onTimeframeChange={setActiveTimeframe}
+            />
           </div>
 
           {/* Chart Area */}
