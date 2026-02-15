@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import {
   Search, Star, CandlestickChart, BarChart3, Activity, Layers,
@@ -10,32 +10,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { createChart, CandlestickSeries, HistogramSeries, type CandlestickData, type HistogramData } from 'lightweight-charts';
 import { useTrading } from '@/hooks/useTrading';
+import { useRealtimePrices } from '@/hooks/useRealtimePrices';
+import { useOrderBook } from '@/hooks/useOrderBook';
 
 interface TradingPageProps {
   isLoggedIn: boolean;
   onLoginClick: () => void;
 }
 
-interface Market {
-  symbol: string;
-  name: string;
-  price: number;
-  change24h: number;
-  volume24h: string;
-  high24h: number;
-  low24h: number;
-  isFavorite?: boolean;
-}
-
-interface OrderBookEntry {
-  price: number;
-  size: number;
-  total: number;
-}
-
 const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
   // useTrading hook for real order management with localStorage
   const { orders, portfolio, placeOrder, isPlacingOrder, cancelOrder } = useTrading();
+
+  // Window width state for SSR-safe responsive checks
+  const [windowWidth, setWindowWidth] = useState(1024);
+
+  // useRealtimePrices hook for dynamic market prices with real-time updates
+  const markets = useRealtimePrices(2000);
 
   const [selectedPair, setSelectedPair] = useState('REC/USDT');
   const [orderType, setOrderType] = useState<'market' | 'limit' | 'stop'>('limit');
@@ -53,16 +44,22 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
   const volumeSeriesRef = useRef<ReturnType<ReturnType<typeof createChart>['addSeries']> | null>(null);
   const chartAnimationRef = useRef<gsap.core.Tween | null>(null);
 
-  const markets: Market[] = [
-    { symbol: 'REC/USDT', name: 'Renewable Energy Certificate', price: 45.20, change24h: 2.4, volume24h: '1.2M', high24h: 46.80, low24h: 43.50 },
-    { symbol: 'TVER/USDT', name: 'Thailand Voluntary Emission', price: 12.80, change24h: 5.1, volume24h: '890K', high24h: 13.50, low24h: 12.10 },
-    { symbol: 'TVER-P/USDT', name: 'TVER Premium', price: 18.50, change24h: 3.2, volume24h: '456K', high24h: 19.20, low24h: 17.80 },
-    { symbol: 'I-REC/USDT', name: 'International REC', price: 52.40, change24h: -0.5, volume24h: '345K', high24h: 53.80, low24h: 51.90 },
-    { symbol: 'CER/USDT', name: 'Certified Emission Reduction', price: 8.35, change24h: -1.2, volume24h: '234K', high24h: 8.60, low24h: 8.15 },
-    { symbol: 'VCU/USDT', name: 'Verified Carbon Unit', price: 6.75, change24h: 0.8, volume24h: '178K', high24h: 6.90, low24h: 6.60 },
-  ];
+  // Favorite markets state
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
+  // Set window width after hydration to avoid SSR crash
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    handleResize(); // Set initial width
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Find current market from real-time prices
   const currentMarket = markets.find(m => m.symbol === selectedPair) || markets[0];
+
+  // useOrderBook hook for order book generation with real-time updates
+  const orderBook = useOrderBook(currentMarket?.price || 0, 12, 2000);
 
   // Initialize Chart
   useEffect(() => {
@@ -197,47 +194,11 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
       window.removeEventListener('resize', handleResize);
       chart.remove();
     };
-  }, [selectedPair, currentMarket.price]);
+  }, [selectedPair, currentMarket?.price]);
 
-  // Generate Order Book Data
-  const generateOrderBook = useCallback(() => {
-    const asks: OrderBookEntry[] = [];
-    const bids: OrderBookEntry[] = [];
-    const basePrice = currentMarket.price;
-    
-    for (let i = 1; i <= 12; i++) {
-      const askPrice = basePrice + (i * 0.08);
-      const askSize = Math.random() * 500 + 50;
-      asks.push({
-        price: parseFloat(askPrice.toFixed(2)),
-        size: parseFloat(askSize.toFixed(2)),
-        total: parseFloat((askPrice * askSize).toFixed(2)),
-      });
-      
-      const bidPrice = basePrice - (i * 0.08);
-      const bidSize = Math.random() * 500 + 50;
-      bids.push({
-        price: parseFloat(bidPrice.toFixed(2)),
-        size: parseFloat(bidSize.toFixed(2)),
-        total: parseFloat((bidPrice * bidSize).toFixed(2)),
-      });
-    }
-    
-    return { asks: asks.reverse(), bids };
-  }, [currentMarket.price]);
-
-  const [orderBook, setOrderBook] = useState(generateOrderBook());
-
-  // Update order book periodically
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setOrderBook(generateOrderBook());
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [generateOrderBook]);
-
-  const maxAskSize = Math.max(...orderBook.asks.map(a => a.size));
-  const maxBidSize = Math.max(...orderBook.bids.map(b => b.size));
+  // Calculate max sizes for order book depth visualization
+  const maxAskSize = orderBook.asks.length > 0 ? Math.max(...orderBook.asks.map(a => a.size)) : 1;
+  const maxBidSize = orderBook.bids.length > 0 ? Math.max(...orderBook.bids.map(b => b.size)) : 1;
 
   const handlePlaceOrder = async () => {
     if (!isLoggedIn) {
@@ -365,8 +326,20 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
                 style={{ animationDelay: `${index * 30}ms` }}
               >
                 <div className="flex items-center gap-2">
-                  <button className="text-[#6b7280] hover:text-yellow-400">
-                    <Star className={`w-3 h-3 ${market.isFavorite ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                  <button
+                    className="text-[#6b7280] hover:text-yellow-400"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      const newFavorites = new Set(favorites)
+                      if (newFavorites.has(market.symbol)) {
+                        newFavorites.delete(market.symbol)
+                      } else {
+                        newFavorites.add(market.symbol)
+                      }
+                      setFavorites(newFavorites)
+                    }}
+                  >
+                    <Star className={`w-3 h-3 ${favorites.has(market.symbol) ? 'fill-yellow-400 text-yellow-400' : ''}`} />
                   </button>
                   <div>
                     <p className="text-sm font-medium">{market.symbol}</p>
@@ -450,7 +423,7 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
           </div>
 
           {/* Chart Area */}
-          {(mobileActiveView === 'chart' || window.innerWidth >= 1024) && (
+          {(mobileActiveView === 'chart' || windowWidth >= 1024) && (
             <div className="flex-1 min-h-[300px] lg:min-h-0 relative">
               <div ref={chartContainerRef} className="absolute inset-0 chart-container" />
             </div>
@@ -564,13 +537,19 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
 
               {/* Percentage Buttons */}
               <div className="flex gap-2">
-                {['25%', '50%', '75%', '100%'].map((pct) => (
+                {['25%', '50%', '75%', '100%'].map((pctLabel) => (
                   <button
-                    key={pct}
-                    onClick={() => setAmount((Math.random() * 100).toFixed(2))}
+                    key={pctLabel}
+                    onClick={() => {
+                      const pctValue = parseInt(pctLabel) / 100
+                      const maxAmount = side === 'buy'
+                        ? (portfolio.balance / (currentMarket?.price || 1))
+                        : (portfolio.holdings[selectedPair.split('/')[0]]?.amount || 0)
+                      setAmount((maxAmount * pctValue || 0).toFixed(2))
+                    }}
                     className="flex-1 py-2 text-xs bg-[#1a2234] rounded-lg text-[#9ca3af] hover:bg-[#252d3d]"
                   >
-                    {pct}
+                    {pctLabel}
                   </button>
                 ))}
               </div>
@@ -819,7 +798,13 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
               {['0%', '25%', '50%', '75%', '100%'].map((pct) => (
                 <button
                   key={pct}
-                  onClick={() => setAmount((Math.random() * 100 * (parseInt(pct) / 100 || 0.01)).toFixed(2))}
+                  onClick={() => {
+                    const pctValue = parseInt(pct) / 100
+                    const maxAmount = side === 'buy'
+                      ? (portfolio.balance / (currentMarket?.price || 1))
+                      : (portfolio.holdings[selectedPair.split('/')[0]]?.amount || 0)
+                    setAmount((maxAmount * pctValue || 0).toFixed(2))
+                  }}
                   className="flex-1 py-1.5 text-xs bg-[#0a0e17] rounded text-[#9ca3af] hover:bg-[#1a2234] transition-colors"
                 >
                   {pct}

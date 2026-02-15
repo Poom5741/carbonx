@@ -269,7 +269,7 @@ export function useTrading() {
 
   const getTotalValue = useCallback(() => {
     let total = portfolio.balance
-    Object.entries(portfolio.holdings).forEach(([symbol, holding]) => {
+    Object.entries(portfolio.holdings).forEach(([, holding]) => {
       total += holding.amount * holding.currentPrice
     })
     return total

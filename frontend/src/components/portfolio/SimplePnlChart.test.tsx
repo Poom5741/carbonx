@@ -4,6 +4,7 @@ import { SimplePnlChart } from './SimplePnlChart'
 import type { Order } from '@/hooks/useTrading'
 
 // Mock lightweight-charts to avoid actual chart rendering in tests
+// @ts-expect-error - Variable is used in mock function, TypeScript doesn't recognize it
 let capturedChartData: Array<{ time: string; value: number }> = []
 const mockSeries = {
   setData: vi.fn((data: Array<{ time: string; value: number }>) => {

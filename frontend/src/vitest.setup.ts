@@ -31,6 +31,24 @@ class ResizeObserverMock {
 }
 global.ResizeObserver = ResizeObserverMock as any
 
+// Mock GSAP - properly return actual exports
+vi.mock('gsap', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('gsap')>()
+  return {
+    ...actual,
+    // Add any specific mocks if needed
+  }
+})
+
+// Add global type declarations for NodeJS
+declare global {
+  var NodeJS: {
+    setTimeout: (callback: () => void, ms: number) => number
+    clearInterval: (id: number) => void
+    clearTimeout: (id: number) => void
+  }
+}
+
 afterEach(() => {
   cleanup()
 })

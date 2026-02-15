@@ -14,6 +14,7 @@ const tourSteps: TourStep[] = [
   {
     title: 'Welcome to Blockedge Exchange',
     description: 'Your next-generation carbon credit trading platform. Let us show you around the key features.',
+    target: '', // Center overlay doesn't need a target
     position: 'center'
   },
   {
