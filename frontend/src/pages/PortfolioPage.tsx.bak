@@ -1,16 +1,16 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { useTrading } from '@/hooks/useTrading'
-import PnlChart from '@/components/portfolio/SimplePnlChart'
+import { useNavigate } from 'react-router-dom';
+import { PieChart, History } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useTrading, type Order } from '@/hooks/useTrading';
+import PnlChart from '@/components/portfolio/PnlChart';
 
 interface PortfolioPageProps {
-  isLoggedIn: boolean
-  onLoginClick: () => void
+  isLoggedIn: boolean;
+  onLoginClick: () => void;
 }
 
-export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
-  const navigate = useNavigate()
+export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn, onLoginClick }) => {
   const {
     orders,
     portfolio,
@@ -18,27 +18,29 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
     cancelOrder,
     resetData,
     getTotalValue
-  } = useTrading()
+  } = useTrading();
+
+  const navigate = useNavigate();
 
   const handleCancelOrder = (orderId: string) => {
-    cancelOrder(orderId)
-  }
+    cancelOrder(orderId);
+  };
 
   const handleReset = () => {
-    resetData()
-  }
+    resetData();
+  };
 
   // Calculate total assets count (unique tokens)
-  const totalAssets = Object.keys(portfolio.holdings).length
+  const totalAssets = Object.keys(portfolio.holdings).length;
 
-  // Calculate 24h Pnl
-  const initialValue = 10000
-  const currentValue = getTotalValue()
-  const pnl = currentValue - initialValue
-  const pnlPercent = (pnl / initialValue) * 100
+  // Calculate 24h P&L
+  const initialValue = 10000;
+  const currentValue = getTotalValue();
+  const pnl = currentValue - initialValue;
+  const pnlPercent = (pnl / initialValue) * 100;
 
   // Calculate total pending orders
-  const pendingOrdersCount = orders.length
+  const pendingOrdersCount = orders.length;
 
   return (
     <div data-testid="portfolio-page" className="min-h-screen bg-[#0a0e17]">
@@ -48,25 +50,18 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
           <h1 className="text-3xl font-bold text-white">
             Portfolio <span className="text-[#40ffa9]">Overview</span>
           </h1>
-          {isLoggedIn && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleReset}
-              className="border-white/20 hover:bg-white/10"
-            >
-              Reset Demo
-            </Button>
-          )}
-        </div>
-
-        {/* Pnl Chart */}
-        <div className="mb-8">
-          <PnlChart
-            initialValue={initialValue}
-            currentValue={currentValue}
-            orderHistory={orderHistory}
-          />
+          <div className="flex gap-3">
+            {isLoggedIn && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleReset}
+                className="border-white/20 hover:bg-white/10"
+              >
+                Reset Demo
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Summary Cards */}
@@ -74,7 +69,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
           <div data-testid="total-balance-card" className="bg-[#111827] rounded-xl p-6">
             <p className="text-gray-400 text-sm">Total Balance</p>
             <p className="text-2xl font-bold text-white mt-2">
-              {getTotalValue().toFixed(2)} USDT
+              ${getTotalValue().toFixed(2)} USDT
             </p>
           </div>
           <div data-testid="total-assets-card" className="bg-[#111827] rounded-xl p-6">
@@ -82,15 +77,23 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
             <p className="text-2xl font-bold text-white mt-2">{totalAssets}</p>
           </div>
           <div data-testid="daily-pnl-card" className="bg-[#111827] rounded-xl p-6">
-            <p className="text-gray-400 text-sm">24h Pnl</p>
-            <p className="text-2xl font-bold mt-2">
-              {pnl >= 0 ? '+' : ''}{pnl.toFixed(2)} ({pnlPercent.toFixed(1)}%)
+            <p className="text-gray-400 text-sm">24h P&L</p>
+            <p className={`text-2xl font-bold mt-2 ${pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {pnl >= 0 ? '+' : ''}{pnl.toFixed(2)} } ({pnlPercent.toFixed(1)})
             </p>
           </div>
           <div data-testid="pending-orders-card" className="bg-[#111827] rounded-xl p-6">
             <p className="text-gray-400 text-sm">Pending Orders</p>
             <p className="text-2xl font-bold text-white mt-2">{pendingOrdersCount}</p>
           </div>
+        </div>
+
+        {/* P&L Chart */}
+        <div className="mb-8">
+          <PnlChart
+            initialValue={initialValue}
+            currentValue={currentValue}
+          />
         </div>
 
         {/* Holdings Section */}
@@ -121,7 +124,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
                       </td>
                       <td className="py-4 px-4 text-white">{holding.amount.toFixed(2)}</td>
                       <td className="py-4 px-4 text-white">
-                        {(holding.amount * holding.currentPrice).toFixed(2)}
+                        ${(holding.amount * holding.currentPrice).toFixed(2)}
                       </td>
                       <td className={`py-4 px-4 ${holding.currentPrice >= 45 ? 'text-green-400' : 'text-red-400'}`}>
                         {holding.currentPrice >= 45 ? '+' : ''}{((holding.currentPrice - 45) / 45 * 100).toFixed(1)}%
@@ -139,11 +142,10 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
                 </tbody>
               </table>
             </div>
-          )}
-        </div>
+          </div>
 
         {/* Open Orders Section */}
-        <div data-testid="open-orders-section" className="bg-[#111827] rounded-xl p-6 mb-8">
+        <div data-testid="open-orders-section" className="bg-[#111827] rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-white">Open Orders</h2>
             {orders.length > 0 && (
@@ -167,7 +169,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
                     <th className="text-left text-gray-400 py-3 px-4">Side</th>
                     <th className="text-right text-gray-400 py-3 px-4">Price</th>
                     <th className="text-right text-gray-400 py-3 px-4">Amount</th>
-                    <th className="text-right text-gray-400 py-3 px-4">Filled (%)</th>
+                    <th className="text-right text-gray-400 py-3 px-4">Filled</th>
                     <th className="text-right text-gray-400 py-3 px-4">Action</th>
                   </tr>
                 </thead>
@@ -177,12 +179,12 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
                       <td className="py-3 px-4 text-white">{order.pair}</td>
                       <td className="py-3 px-4 text-white capitalize">{order.type}</td>
                       <td className={`py-3 px-4 ${order.side === 'buy' ? 'text-green-400' : 'text-red-400'}`}>
-                          {order.side}
-                        </td>
+                        {order.side}
+                      </td>
                       <td className="py-3 px-4 text-right text-white font-mono">{order.price.toFixed(2)}</td>
                       <td className="py-3 px-4 text-right text-white font-mono">{order.amount}</td>
-                      <td className="py-3 px-4 text-right text-white font-mono">
-                        {order.filled > 0 ? ((order.filled / order.amount) * 100).toFixed(0) : '0'}
+                      <td className="py-3 px-4 text-right text-white">
+                        {order.filled > 0 ? `${((order.filled / order.amount) * 100).toFixed(0)}%` : '0%'}
                       </td>
                       <td className="py-3 px-4 text-right">
                         <button
@@ -218,8 +220,8 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
                     <th className="text-left text-gray-400 py-3 px-4">Side</th>
                     <th className="text-right text-gray-400 py-3 px-4">Price</th>
                     <th className="text-right text-gray-400 py-3 px-4">Amount</th>
-                    <th className="text-right text-gray-400 py-3 px-4">Total</th>
                     <th className="text-left text-gray-400 py-3 px-4">Status</th>
+                    <th className="text-right text-gray-400 py-3 px-4">Total</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -228,19 +230,21 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
                       <td className="py-3 px-4 text-white">{order.pair}</td>
                       <td className="py-3 px-4 text-white capitalize">{order.type}</td>
                       <td className={`py-3 px-4 ${order.side === 'buy' ? 'text-green-400' : 'text-red-400'}`}>
-                          {order.side}
-                        </td>
-                      <td className="py-3 px-4 text-right text-white font-mono">{order.price.toFixed(2)}</td>
-                      <td className="py-3 px-4 text-white">{order.amount}</td>
-                      <td className="py-3 px-4 text-right text-white font-mono">
-                        {(order.price * order.amount).toFixed(2)}
+                        {order.side}
                       </td>
-                      <td className={`py-3 px-4 text-right capitalize ${
-                        order.status === 'filled' ? 'text-green-400'
-                          : order.status === 'cancelled' ? 'text-yellow-400'
-                          : 'text-gray-400'
+                      <td className="py-3 px-4 text-right text-white font-mono">{order.price.toFixed(2)}</td>
+                      <td className="py-3 px-4 text-right text-white font-mono">{order.amount}</td>
+                      <td className={`py-3 px-4 capitalize ${
+                        order.status === 'filled'
+                          ? 'text-green-400'
+                          : order.status === 'cancelled'
+                            ? 'text-gray-400'
+                            : 'text-yellow-400'
                       }`}>
                         {order.status}
+                      </td>
+                      <td className="py-3 px-4 text-right text-white font-mono">
+                        ${(order.price * order.amount).toFixed(2)}
                       </td>
                     </tr>
                   ))}
@@ -251,7 +255,4 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
         )}
       </main>
     </div>
-  );
 };
-
-export default PortfolioPage;

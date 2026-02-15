@@ -5,8 +5,8 @@ import LoginModal from './components/LoginModal';
 import LandingPage from './pages/LandingPage';
 import TradingPage from './pages/TradingPage';
 import MarketsPage from './pages/MarketsPage';
-import { PortfolioPage } from './pages/PortfolioPage';
-import { NotFound404 } from './pages/NotFound404';
+import PortfolioPage from './pages/PortfolioPage';
+import NotFound404 from './pages/NotFound404';
 
 function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -39,25 +39,21 @@ function AppContent() {
         onLogout={handleLogout}
       />
 
-        {showLoginModal && <LoginModal 
-          isOpen={showLoginModal} 
+      {showLoginModal && (
+        <LoginModal
+          isOpen={showLoginModal}
           onClose={() => setShowLoginModal(false)}
           onLogin={handleLogin}
-        />}
+        />
+      )}
 
-        <Routes>
+      <Routes>
         <Route path="/" element={<LandingPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
         <Route path="/trade" element={<TradingPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
         <Route path="/markets" element={<MarketsPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
         <Route path="/portfolio" element={<PortfolioPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} />} />
         <Route path="*" element={<NotFound404 />} />
       </Routes>
-
-      {showLoginModal && <LoginModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        onLogin={handleLogin}
-      />}
     </>
   );
 }

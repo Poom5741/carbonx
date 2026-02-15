@@ -62,3 +62,5 @@ export const NotFound404: React.FC = () => {
     </div>
   )
 }
+
+export default NotFound404;

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { createChart, CandlestickSeries, HistogramSeries, type CandlestickData, type HistogramData } from 'lightweight-charts';
+import { useTrading } from '@/hooks/useTrading';
 
 interface TradingPageProps {
   isLoggedIn: boolean;
@@ -33,6 +34,9 @@ interface OrderBookEntry {
 }
 
 const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
+  // useTrading hook for real order management with localStorage
+  const { orders, portfolio, placeOrder, isPlacingOrder, cancelOrder } = useTrading();
+
   const [selectedPair, setSelectedPair] = useState('REC/USDT');
   const [orderType, setOrderType] = useState<'market' | 'limit' | 'stop'>('limit');
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
@@ -235,7 +239,7 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
   const maxAskSize = Math.max(...orderBook.asks.map(a => a.size));
   const maxBidSize = Math.max(...orderBook.bids.map(b => b.size));
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (!isLoggedIn) {
       onLoginClick();
       return;
@@ -244,8 +248,37 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
       toast.error('Please fill in all fields');
       return;
     }
-    toast.success(`${side === 'buy' ? 'Buy' : 'Sell'} order placed for ${amount} ${selectedPair.split('/')[0]}`);
-    setAmount('');
+
+    const amountNum = parseFloat(amount);
+    const priceNum = orderType === 'market' ? currentMarket.price : parseFloat(price || '0');
+
+    if (isNaN(amountNum) || isNaN(priceNum) || amountNum <= 0 || (orderType !== 'market' && priceNum <= 0)) {
+      toast.error('Please enter valid amounts');
+      return;
+    }
+
+    const result = await placeOrder({
+      pair: selectedPair,
+      type: orderType,
+      side,
+      price: priceNum,
+      amount: amountNum,
+    });
+
+    if (result.success) {
+      toast.success(`${side === 'buy' ? 'Buy' : 'Sell'} ${orderType} order placed for ${amountNum} ${selectedPair.split('/')[0]} at ${priceNum.toFixed(2)} USDT`);
+      setAmount('');
+      if (orderType !== 'market') {
+        setPrice('');
+      }
+    } else {
+      toast.error(result.error || 'Failed to place order');
+    }
+  };
+
+  const handleCancelOrder = (orderId: string) => {
+    cancelOrder(orderId);
+    toast.success('Order cancelled');
   };
 
   const filteredMarkets = markets.filter(m => 
@@ -253,11 +286,7 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
     m.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Sample open orders data
-  const openOrders = [
-    { id: 1, pair: 'REC/USDT', type: 'Limit', side: 'Buy', price: 44.50, amount: 100, filled: '0%' },
-    { id: 2, pair: 'TVER/USDT', type: 'Limit', side: 'Sell', price: 13.20, amount: 500, filled: '25%' },
-  ];
+  // Use real orders from useTrading hook instead of mock data
 
   return (
     <div className="min-h-screen bg-[#0a0e17] flex flex-col pt-14 lg:pt-16">
@@ -593,19 +622,32 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {openOrders.map((order) => (
-                        <tr key={order.id} className="border-b border-white/5 hover:bg-[#1f2937]">
-                          <td className="px-4 py-3">{order.pair}</td>
-                          <td className="px-4 py-3">{order.type}</td>
-                          <td className={`px-4 py-3 ${order.side === 'Buy' ? 'text-[#40ffa9]' : 'text-[#ff6b6b]'}`}>{order.side}</td>
-                          <td className="px-4 py-3 text-right font-mono">{order.price.toFixed(2)}</td>
-                          <td className="px-4 py-3 text-right font-mono">{order.amount}</td>
-                          <td className="px-4 py-3 text-right">{order.filled}</td>
-                          <td className="px-4 py-3 text-right">
-                            <button className="text-[#ff6b6b] hover:underline text-xs">Cancel</button>
+                      {orders.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className="px-4 py-8 text-center text-[#6b7280]">
+                            No open orders
                           </td>
                         </tr>
-                      ))}
+                      ) : (
+                        orders.map((order) => (
+                          <tr key={order.id} className="border-b border-white/5 hover:bg-[#1f2937]">
+                            <td className="px-4 py-3">{order.pair}</td>
+                            <td className="px-4 py-3 capitalize">{order.type}</td>
+                            <td className={`px-4 py-3 ${order.side === 'buy' ? 'text-[#40ffa9]' : 'text-[#ff6b6b]'}`}>{order.side}</td>
+                            <td className="px-4 py-3 text-right font-mono">{order.price.toFixed(2)}</td>
+                            <td className="px-4 py-3 text-right font-mono">{order.amount}</td>
+                            <td className="px-4 py-3 text-right">{order.filled > 0 ? `${((order.filled / order.amount) * 100).toFixed(0)}%` : '0%'}</td>
+                            <td className="px-4 py-3 text-right">
+                              <button
+                                onClick={() => handleCancelOrder(order.id)}
+                                className="text-[#ff6b6b] hover:underline text-xs"
+                              >
+                                Cancel
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -788,19 +830,27 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
             {/* Available Balance */}
             <div className="flex justify-between text-xs mb-4">
               <span className="text-[#6b7280]">Available</span>
-              <span className="font-mono">{isLoggedIn ? '12,450.00 USDT' : '--'}</span>
+              <span className="font-mono">{isLoggedIn ? `${portfolio.balance.toFixed(2)} USDT` : '--'}</span>
             </div>
 
             {/* Submit Button */}
             <Button
               onClick={handlePlaceOrder}
+              disabled={isPlacingOrder}
               className={`w-full py-3 font-semibold transition-all ${
-                side === 'buy' 
-                  ? 'bg-[#40ffa9] text-[#0a0e17] hover:brightness-110' 
-                  : 'bg-[#ff6b6b] text-white hover:brightness-110'
+                side === 'buy'
+                  ? 'bg-[#40ffa9] text-[#0a0e17] hover:brightness-110 disabled:opacity-50'
+                  : 'bg-[#ff6b6b] text-white hover:brightness-110 disabled:opacity-50'
               }`}
             >
-              {side === 'buy' ? 'Buy' : 'Sell'} {selectedPair.split('/')[0]}
+              {isPlacingOrder ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  Placing...
+                </div>
+              ) : (
+                `${side === 'buy' ? 'Buy' : 'Sell'} ${selectedPair.split('/')[0]}`
+              )}
             </Button>
           </div>
         </aside>

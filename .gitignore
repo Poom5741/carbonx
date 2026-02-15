@@ -39,3 +39,6 @@ lerna-debug.log*
 # Vite
 .vite/
 *.tsbuildinfo
+
+*.pdf
+docs/20260203 - Tokenization - Trading Deck.txt

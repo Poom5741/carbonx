@@ -3,6 +3,24 @@ import { render, screen } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { PortfolioPage } from './PortfolioPage'
 
+// Mock useTrading hook
+vi.mock('@/hooks/useTrading', () => ({
+  useTrading: vi.fn(() => ({
+    orders: [],
+    portfolio: {
+      balance: 10000,
+      holdings: {}
+    },
+    orderHistory: [],
+    cancelOrder: vi.fn(),
+    resetData: vi.fn(),
+    getTotalValue: vi.fn(() => 10000),
+    isPlacingOrder: false,
+    placeOrder: vi.fn(),
+    simulateOrderFill: vi.fn()
+  }))
+}))
+
 const renderWithRouter = (component: React.ReactElement) => {
   return render(
     <BrowserRouter>
