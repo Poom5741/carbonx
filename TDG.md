@@ -4,7 +4,7 @@
 - Language: TypeScript
 - Framework: React 19 + Vite 7
 - Package Manager: pnpm
-- Test Framework: None configured (Vitest recommended)
+- Test Framework: Vitest 4 + Testing Library + jsdom
 
 ## Build Command
 ```bash
@@ -24,60 +24,49 @@ cd frontend && pnpm lint
 ## Test Command
 ```bash
 cd frontend && pnpm test
-# No test command configured - needs Vitest setup
 ```
 
 ## Single Test Command
 ```bash
-cd frontend && pnpm test -- --run
+# Run a specific test file
+cd frontend && pnpm test path/to/test.test.tsx
+
+# Run tests matching a pattern
+cd frontend && pnpm test --testNamePattern="pattern"
 ```
 
 ## Coverage Command
 ```bash
-cd frontend && pnpm test -- --coverage
+cd frontend && pnpm test:coverage
+```
+
+## Test UI
+```bash
+cd frontend && pnpm test:ui
 ```
 
 ## Test File Patterns
 - Test files: `*.test.ts`, `*.test.tsx`, `*.spec.ts`, `*.spec.tsx`
-- Test directory: `__tests__/`, `tests/`
-- Setup file: `vitest.setup.ts` (to be created)
+- Test setup: `frontend/src/vitest.setup.ts`
+- Config: `frontend/vitest.config.ts`
 
-## Setup Testing (Required)
-```bash
-cd frontend && pnpm add -D vitest @vitest/ui @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom
-```
+## Vitest Configuration
+- Environment: jsdom
+- Pool: forked (singleThread: true, isolate: false)
+- Coverage provider: v8
+- Reporters: text, json, html
+- Global API: enabled (vitest/globals)
+- Path alias: `@/` → `frontend/src/`
 
-Then add to `package.json` scripts:
-```json
-"test": "vitest",
-"test:ui": "vitest --ui",
-"test:coverage": "vitest --coverage"
-```
-
-Create `vitest.config.ts`:
-```ts
-import { defineConfig } from 'vitest/config'
-import react from '@vitejs/plugin-react'
-import path from 'path'
-
-export default defineConfig({
-  plugins: [react()],
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: './src/vitest.setup.ts',
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
-})
-```
+## Existing Tests
+This project has 24 test files covering:
+- Components: Portfolio, Trading, Matching, Stats, Transitions, Common
+- Hooks: useTrading, useHourlyMatching, useKeyboardShortcuts, useCFECompliance, useOrderBook, useRealtimePrices, useResetDemo
+- Pages: PortfolioPage, App
+- Data: demoData utilities
 
 ## Notes
-- This is a React + Vite project without existing tests
 - Uses pnpm as package manager
-- Current scripts: dev, build, lint, preview
 - TypeScript version: ~5.9.3
 - UI components: shadcn/ui with Radix UI primitives
+- Test dependencies installed: vitest, @vitest/ui, @vitest/coverage-v8, @testing-library/react, @testing-library/jest-dom, @testing-library/user-event, jsdom

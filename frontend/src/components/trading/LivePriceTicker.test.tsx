@@ -213,10 +213,11 @@ describe('LivePriceTicker - Recent Trades Ticker (TDG)', () => {
 
       render(<LivePriceTicker trades={[]} error={mockError} onReconnect={onReconnect} />)
 
-      const reconnectButton = screen.getByRole('button', { name: /reconnect|try again/i })
-      expect(reconnectButton).toBeInTheDocument()
+      // ErrorState component renders "Try Again" button
+      const tryAgainButton = screen.getByRole('button', { name: /try again/i })
+      expect(tryAgainButton).toBeInTheDocument()
 
-      reconnectButton.click()
+      tryAgainButton.click()
       expect(onReconnect).toHaveBeenCalled()
     })
 
@@ -224,8 +225,9 @@ describe('LivePriceTicker - Recent Trades Ticker (TDG)', () => {
       const mockError = new Error('Test error')
       render(<LivePriceTicker trades={[]} error={mockError} />)
 
-      const reconnectButton = screen.getByRole('button', { name: /reconnect|try again/i })
-      expect(reconnectButton).toHaveClass(/#40ffa9|40ffa9/)
+      // ErrorState component uses bg-[#40ffa9] class
+      const tryAgainButton = screen.getByRole('button', { name: /try again/i })
+      expect(tryAgainButton).toHaveClass(/#40ffa9|40ffa9/)
     })
   })
 })

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar, { type NavbarMode } from './components/Navbar';
 import LoginModal from './components/LoginModal';
@@ -7,11 +7,27 @@ import TradingPage from './pages/TradingPage';
 import MarketsPage from './pages/MarketsPage';
 import PortfolioPage from './pages/PortfolioPage';
 import NotFound404 from './pages/NotFound404';
+import { loadDemoData } from './data/demoData';
 
 function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const location = useLocation();
+
+  // Load demo data on app start if localStorage is empty
+  useEffect(() => {
+    const hasExistingData = localStorage.getItem('carbonx_orders') ||
+                             localStorage.getItem('carbonx_portfolio') ||
+                             localStorage.getItem('carbonx_order_history');
+
+    if (!hasExistingData) {
+      try {
+        loadDemoData();
+      } catch (error) {
+        console.warn('Failed to load demo data:', error);
+      }
+    }
+  }, []);
 
   // Determine navbar mode based on route
   const getNavbarMode = (): NavbarMode => {

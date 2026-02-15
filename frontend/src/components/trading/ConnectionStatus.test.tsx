@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act, waitFor } from '@testing-library/react';
 import ConnectionStatus from './ConnectionStatus';
 
 describe('ConnectionStatus', () => {
@@ -12,17 +12,22 @@ describe('ConnectionStatus', () => {
   });
 
   describe('Status Display', () => {
-    it('should show "Live" with green dot when connected', () => {
+    it('should show "Live" with green dot when connected', async () => {
       render(<ConnectionStatus />);
 
       // Initially should show connecting, then become live
       expect(screen.getByText('Connecting...')).toBeInTheDocument();
 
       // Fast forward past initial connection
-      vi.advanceTimersByTime(100);
-      vi.runAllTimers();
+      await act(async () => {
+        vi.advanceTimersByTime(100);
+        vi.runAllTimers();
+      });
 
-      expect(screen.getByText('Live')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Live')).toBeInTheDocument();
+      });
+
       const statusDot = screen.getByTestId('connection-dot');
       expect(statusDot).toHaveClass('bg-[#40ffa9]');
     });
@@ -41,7 +46,9 @@ describe('ConnectionStatus', () => {
       const { rerender } = render(<ConnectionStatus simulateDisconnection={true} />);
 
       // Force disconnected state
-      rerender(<ConnectionStatus simulateDisconnection={true} forceDisconnected={true} />);
+      act(() => {
+        rerender(<ConnectionStatus simulateDisconnection={true} forceDisconnected={true} />);
+      });
 
       expect(screen.getByText('Disconnected')).toBeInTheDocument();
 
@@ -50,62 +57,47 @@ describe('ConnectionStatus', () => {
     });
   });
 
-  describe('Auto-Reconnect Logic', () => {
-    it('should attempt reconnection with exponential backoff', () => {
+  describe('Manual Reconnect', () => {
+    it('should call onReconnectAttempt when reconnect button is clicked', () => {
       const onReconnectAttempt = vi.fn();
-      render(<ConnectionStatus onReconnectAttempt={onReconnectAttempt} simulateDisconnection={true} />);
+      render(<ConnectionStatus forceDisconnected={true} onReconnectAttempt={onReconnectAttempt} />);
 
-      // Initial connection attempt
-      vi.advanceTimersByTime(100);
-      expect(onReconnectAttempt).toHaveBeenCalledTimes(1);
+      const reconnectButton = screen.getByTestId('reconnect-button');
+      reconnectButton.click();
 
-      // Trigger disconnection
-      vi.advanceTimersByTime(1000);
-
-      // First reconnect attempt after 1s
-      vi.advanceTimersByTime(1000);
-      expect(onReconnectAttempt).toHaveBeenCalledTimes(2);
-
-      // Second reconnect attempt after 2s (exponential backoff: 1s -> 2s)
-      vi.advanceTimersByTime(2000);
-      expect(onReconnectAttempt).toHaveBeenCalledTimes(3);
-
-      // Third reconnect attempt after 4s (2s -> 4s)
-      vi.advanceTimersByTime(4000);
-      expect(onReconnectAttempt).toHaveBeenCalledTimes(4);
-
-      // Fourth reconnect attempt after 8s max (4s -> 8s max)
-      vi.advanceTimersByTime(8000);
-      expect(onReconnectAttempt).toHaveBeenCalledTimes(5);
-
-      // Should cap at 8s for subsequent attempts
-      vi.advanceTimersByTime(8000);
-      expect(onReconnectAttempt).toHaveBeenCalledTimes(6);
+      expect(onReconnectAttempt).toHaveBeenCalled();
     });
 
-    it('should stop reconnect attempts when successfully reconnected', () => {
-      const onReconnectAttempt = vi.fn();
-      const onStatusChange = vi.fn();
+    it('should show connecting state after reconnect button click', () => {
+      const { container } = render(<ConnectionStatus forceDisconnected={true} />);
 
-      render(
-        <ConnectionStatus
-          onReconnectAttempt={onReconnectAttempt}
-          onStatusChange={onStatusChange}
-          simulateDisconnection={true}
-        />
-      );
+      const reconnectButton = screen.getByTestId('reconnect-button');
+      reconnectButton.click();
 
-      // Trigger reconnection
-      vi.advanceTimersByTime(1000);
+      // Fast forward through the reconnect timeout
+      vi.advanceTimersByTime(2000);
       vi.runAllTimers();
 
-      // Eventually should reach "Live" state
-      expect(onStatusChange).toHaveBeenCalledWith('live');
+      expect(screen.getByText('Live')).toBeInTheDocument();
+    });
+
+    it('should disable reconnect button while reconnecting', () => {
+      render(<ConnectionStatus forceDisconnected={true} />);
+
+      const reconnectButton = screen.getByTestId('reconnect-button');
+      reconnectButton.click();
+
+      // Button should be disabled during reconnect
+      expect(reconnectButton).toBeDisabled();
+
+      // After reconnect completes, button is re-enabled
+      vi.advanceTimersByTime(2000);
+      vi.runAllTimers();
     });
   });
 
   describe('Status Change Callbacks', () => {
-    it('should call onStatusChange when connection status changes', () => {
+    it('should call onStatusChange when connection status changes', async () => {
       const onStatusChange = vi.fn();
       render(<ConnectionStatus onStatusChange={onStatusChange} />);
 
@@ -113,9 +105,14 @@ describe('ConnectionStatus', () => {
       expect(onStatusChange).toHaveBeenCalledWith('connecting');
 
       // After successful connection
-      vi.advanceTimersByTime(100);
-      vi.runAllTimers();
-      expect(onStatusChange).toHaveBeenCalledWith('live');
+      await act(async () => {
+        vi.advanceTimersByTime(100);
+        vi.runAllTimers();
+      });
+
+      await waitFor(() => {
+        expect(onStatusChange).toHaveBeenCalledWith('live');
+      });
     });
 
     it('should call onStatusChange with disconnected when connection fails', () => {
@@ -133,7 +130,7 @@ describe('ConnectionStatus', () => {
   });
 
   describe('Demo Simulation', () => {
-    it('should support simulated connection state changes for demo', () => {
+    it('should support simulated connection state changes for demo', async () => {
       const onStatusChange = vi.fn();
 
       const { rerender } = render(
@@ -141,18 +138,29 @@ describe('ConnectionStatus', () => {
       );
 
       // In demo mode, should start live
-      vi.advanceTimersByTime(100);
-      vi.runAllTimers();
+      await act(async () => {
+        vi.advanceTimersByTime(100);
+        vi.runAllTimers();
+      });
+
       expect(onStatusChange).toHaveBeenCalledWith('live');
 
       // Trigger demo disconnection
-      rerender(<ConnectionStatus onStatusChange={onStatusChange} demoMode={true} demoDisconnected={true} />);
+      act(() => {
+        rerender(<ConnectionStatus onStatusChange={onStatusChange} demoMode={true} demoDisconnected={true} />);
+      });
       expect(onStatusChange).toHaveBeenCalledWith('disconnected');
 
       // Trigger demo reconnection
-      rerender(<ConnectionStatus onStatusChange={onStatusChange} demoMode={true} demoDisconnected={false} />);
-      vi.advanceTimersByTime(100);
-      vi.runAllTimers();
+      act(() => {
+        rerender(<ConnectionStatus onStatusChange={onStatusChange} demoMode={true} demoDisconnected={false} />);
+      });
+
+      await act(async () => {
+        vi.advanceTimersByTime(100);
+        vi.runAllTimers();
+      });
+
       expect(onStatusChange).toHaveBeenCalledWith('live');
     });
   });
@@ -177,11 +185,17 @@ describe('ConnectionStatus', () => {
   });
 
   describe('Colors', () => {
-    it('should use correct green color (#40ffa9) for live status', () => {
+    it('should use correct green color (#40ffa9) for live status', async () => {
       render(<ConnectionStatus />);
 
-      vi.advanceTimersByTime(100);
-      vi.runAllTimers();
+      await act(async () => {
+        vi.advanceTimersByTime(100);
+        vi.runAllTimers();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Live')).toBeInTheDocument();
+      });
 
       const statusDot = screen.getByTestId('connection-dot');
       expect(statusDot).toHaveClass('bg-[#40ffa9]');

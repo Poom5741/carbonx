@@ -12,6 +12,7 @@ import { createChart, CandlestickSeries, HistogramSeries, type CandlestickData, 
 import { useTrading } from '@/hooks/useTrading';
 import { useRealtimePrices } from '@/hooks/useRealtimePrices';
 import { useOrderBook } from '@/hooks/useOrderBook';
+import { LoadingState } from '@/components/common/LoadingState';
 
 interface TradingPageProps {
   isLoggedIn: boolean;
@@ -19,6 +20,9 @@ interface TradingPageProps {
 }
 
 const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
+  // Initial load state for smooth loading skeleton
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
   // useTrading hook for real order management with localStorage
   const { orders, portfolio, placeOrder, isPlacingOrder, cancelOrder } = useTrading();
 
@@ -54,6 +58,14 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Clear initial load state after data is ready
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialLoad(false)
+    }, 50)
+    return () => clearTimeout(timer)
+  }, [])
 
   // Find current market from real-time prices
   const currentMarket = markets.find(m => m.symbol === selectedPair) || markets[0];
@@ -249,8 +261,40 @@ const TradingPage = ({ isLoggedIn, onLoginClick }: TradingPageProps) => {
 
   // Use real orders from useTrading hook instead of mock data
 
+  // Show loading skeleton on initial mount
+  if (isInitialLoad) {
+    return (
+      <div className="min-h-screen bg-[#0a0e17] flex flex-col pt-14 lg:pt-16">
+        <main className="flex-1 flex overflow-hidden p-4 gap-4">
+          {/* Sidebar skeleton */}
+          <div className="hidden lg:flex w-[280px] flex-col bg-[#111827] rounded-xl">
+            <LoadingState type="table" rowCount={5} />
+          </div>
+
+          {/* Chart skeleton */}
+          <div className="flex-1 bg-[#111827] rounded-xl p-6">
+            <LoadingState type="chart" />
+          </div>
+
+          {/* Order book skeleton */}
+          <div className="hidden lg:flex w-[320px] xl:w-[360px] flex-col bg-[#111827] rounded-xl p-6">
+            <LoadingState type="stats" />
+          </div>
+        </main>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-[#0a0e17] flex flex-col pt-14 lg:pt-16">
+    <div data-testid="trading-page" className="min-h-screen bg-[#0a0e17] flex flex-col pt-14 lg:pt-16 fade-in animate-in duration-300">
+      <style>{`
+        @media (max-width: 768px) {
+          .trading-layout { flex-direction: column !important; }
+          .chart-container { min-height: 300px !important; }
+          .order-book-panel { display: none; }
+          .sidebar-markets { display: none; }
+        }
+      `}</style>
       {/* Mobile View Toggle */}
       <div className="lg:hidden flex border-b border-white/5">
         {[

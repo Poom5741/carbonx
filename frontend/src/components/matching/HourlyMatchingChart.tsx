@@ -148,6 +148,13 @@ export const HourlyMatchingChart: React.FC<HourlyMatchingChartProps> = ({
       data-testid="hourly-matching-chart"
       className={`relative bg-gradient-to-br from-[#111827] to-[#0a0e17] rounded-2xl p-6 border border-white/5 overflow-hidden ${className}`}
     >
+      <style>{`
+        @media (max-width: 768px) {
+          .chart-header { flex-direction: column !important; align-items: flex-start !important; }
+          .chart-stats { grid-template-columns: repeat(2, 1fr) !important; }
+          .hourly-chart { height: 250px !important; }
+        }
+      `}</style>
       {/* Animated glow background */}
       <div
         ref={glowRef}

@@ -74,7 +74,7 @@ const ChartSkeleton: React.FC = () => {
 
       {/* X-axis labels skeleton */}
       <div className="absolute left-16 right-0 bottom-0 flex justify-between">
-        {['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'].map((time, i) => (
+        {['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'].map((time) => (
           <div
             key={time}
             className="h-3 w-10 bg-[#1a2234] rounded animate-pulse"

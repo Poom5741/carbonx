@@ -5,11 +5,15 @@ import { ComplianceScore } from './ComplianceScore'
 // Mock GSAP - must be done with factory function due to hoisting
 vi.mock('gsap', () => ({
   default: {
-    to: vi.fn(({ onUpdate }) => {
+    to: vi.fn(({ onUpdate, duration }) => {
       // Simulate animation completing immediately for tests
-      if (onUpdate) onUpdate()
+      // Call onUpdate synchronously to set the animated value
+      if (onUpdate) {
+        onUpdate()
+      }
       return { kill: vi.fn() }
     }),
+    fromTo: vi.fn(),
     from: vi.fn(),
     set: vi.fn(),
   },

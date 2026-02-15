@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   AlertDialog,
@@ -15,6 +15,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { useTrading } from '@/hooks/useTrading'
 import { useResetDemo } from '@/hooks/useResetDemo'
 import PnlChart from '@/components/portfolio/SimplePnlChart'
+import { LoadingState } from '@/components/common/LoadingState'
 
 interface PortfolioPageProps {
   isLoggedIn: boolean
@@ -24,6 +25,7 @@ interface PortfolioPageProps {
 export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
   const navigate = useNavigate()
   const [showResetDialog, setShowResetDialog] = useState(false)
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
 
   const {
     orders,
@@ -34,6 +36,16 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
   } = useTrading()
 
   const { isResetting, resetDemo } = useResetDemo()
+
+  // Clear initial load state after data is ready
+  useEffect(() => {
+    // Small delay to simulate initial load and ensure smooth transition
+    const timer = setTimeout(() => {
+      setIsInitialLoad(false)
+    }, 50)
+
+    return () => clearTimeout(timer)
+  }, [])
 
   const handleCancelOrder = (orderId: string) => {
     cancelOrder(orderId)
@@ -60,8 +72,39 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
   // Calculate total pending orders
   const pendingOrdersCount = orders.length
 
+  // Show loading skeleton on initial mount
+  if (isInitialLoad) {
+    return (
+      <div data-testid="portfolio-page" className="min-h-screen bg-[#0a0e17]">
+        <main className="container mx-auto px-4 py-8 pt-24">
+          {/* Title skeleton */}
+          <div className="h-10 w-64 bg-[#1a2234] rounded mb-8 animate-pulse" />
+
+          {/* Chart skeleton */}
+          <LoadingState type="chart" className="mb-8" />
+
+          {/* Stats skeleton */}
+          <LoadingState type="stats" className="mb-8" />
+
+          {/* Table skeleton for holdings */}
+          <div className="bg-[#111827] rounded-xl p-6 mb-8">
+            <LoadingState type="table" rowCount={3} />
+          </div>
+        </main>
+      </div>
+    )
+  }
+
   return (
-    <div data-testid="portfolio-page" className="min-h-screen bg-[#0a0e17]">
+    <div data-testid="portfolio-page" className="min-h-screen bg-[#0a0e17] fade-in animate-in duration-300">
+      <style>{`
+        @media (max-width: 768px) {
+          .portfolio-grid { grid-template-columns: 1fr !important; }
+          .chart-container { min-height: 300px !important; }
+          .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .table-container { overflow-x: auto !important; }
+        }
+      `}</style>
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 pt-24">
         <div className="flex items-center justify-between mb-8">
@@ -79,7 +122,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
             >
               {isResetting ? (
                 <>
-                  <Spinner size="sm" className="mr-2" />
+                  <Spinner className="mr-2 size-4" />
                   Resetting...
                 </>
               ) : (
@@ -133,9 +176,9 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
                 <thead>
                   <tr className="border-b border-white/10">
                     <th className="text-left text-gray-400 py-3 px-4">Asset</th>
-                    <th className="text-left text-gray-400 py-3 px-4">Amount</th>
-                    <th className="text-left text-gray-400 py-3 px-4">Value (USDT)</th>
-                    <th className="text-left text-gray-400 py-3 px-4">24h Change</th>
+                    <th className="text-right text-gray-400 py-3 px-4">Amount</th>
+                    <th className="text-right text-gray-400 py-3 px-4">Value (USDT)</th>
+                    <th className="text-right text-gray-400 py-3 px-4">24h Change</th>
                     <th className="text-left text-gray-400 py-3 px-4">Actions</th>
                   </tr>
                 </thead>
@@ -148,11 +191,11 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
                           <p className="text-gray-400 text-sm">Carbon Credit</p>
                         </div>
                       </td>
-                      <td className="py-4 px-4 text-white">{holding.amount.toFixed(2)}</td>
-                      <td className="py-4 px-4 text-white">
+                      <td className="py-4 px-4 text-right text-white font-mono">{holding.amount.toFixed(2)}</td>
+                      <td className="py-4 px-4 text-right text-white font-mono">
                         {(holding.amount * holding.currentPrice).toFixed(2)}
                       </td>
-                      <td className={`py-4 px-4 ${holding.currentPrice >= 45 ? 'text-green-400' : 'text-red-400'}`}>
+                      <td className={`py-4 px-4 text-right ${holding.currentPrice >= 45 ? 'text-green-400' : 'text-red-400'}`}>
                         {holding.currentPrice >= 45 ? '+' : ''}{((holding.currentPrice - 45) / 45 * 100).toFixed(1)}%
                       </td>
                       <td className="py-4 px-4">
@@ -254,17 +297,17 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ isLoggedIn }) => {
                 <tbody>
                   {orderHistory.slice(-10).reverse().map((order) => (
                     <tr key={order.id} className="border-b border-white/5">
-                      <td className="py-3 px-4 text-white">{order.pair}</td>
-                      <td className="py-3 px-4 text-white capitalize">{order.type}</td>
-                      <td className={`py-3 px-4 ${order.side === 'buy' ? 'text-green-400' : 'text-red-400'}`}>
-                          {order.side}
-                        </td>
+                      <td className="py-3 px-4 text-left text-white">{order.pair}</td>
+                      <td className="py-3 px-4 text-left text-white capitalize">{order.type}</td>
+                      <td className={`py-3 px-4 text-left ${order.side === 'buy' ? 'text-green-400' : 'text-red-400'}`}>
+                        {order.side}
+                      </td>
                       <td className="py-3 px-4 text-right text-white font-mono">{order.price.toFixed(2)}</td>
-                      <td className="py-3 px-4 text-white">{order.amount}</td>
+                      <td className="py-3 px-4 text-right text-white font-mono">{order.amount}</td>
                       <td className="py-3 px-4 text-right text-white font-mono">
                         {(order.price * order.amount).toFixed(2)}
                       </td>
-                      <td className={`py-3 px-4 text-right capitalize ${
+                      <td className={`py-3 px-4 text-left capitalize ${
                         order.status === 'filled' ? 'text-green-400'
                           : order.status === 'cancelled' ? 'text-yellow-400'
                           : 'text-gray-400'

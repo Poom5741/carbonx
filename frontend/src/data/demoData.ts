@@ -1,4 +1,4 @@
-import type { Order, Portfolio, OrderType, OrderSide, OrderStatus } from '@/hooks/useTrading'
+import type { Order, Portfolio } from '@/hooks/useTrading'
 
 export interface DemoData {
   initialValue: number
@@ -156,8 +156,30 @@ export const loadDemoData = (): void => {
   const demoData = getDemoData()
 
   if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
-    localStorage.setItem('carbonx_orders', JSON.stringify(demoData.openOrders))
-    localStorage.setItem('carbonx_portfolio', JSON.stringify(demoData.portfolio))
-    localStorage.setItem('carbonx_order_history', JSON.stringify(demoData.orderHistory))
+    try {
+      localStorage.setItem('carbonx_orders', JSON.stringify(demoData.openOrders))
+      localStorage.setItem('carbonx_portfolio', JSON.stringify(demoData.portfolio))
+      localStorage.setItem('carbonx_order_history', JSON.stringify(demoData.orderHistory))
+    } catch (error) {
+      // Handle QuotaExceededError specifically
+      if (error instanceof DOMException && (
+        error.name === 'QuotaExceededError' ||
+        error.code === 22 ||
+        error.code === 1014
+      )) {
+        console.error('localStorage quota exceeded. Please clear some data.')
+        // Attempt to clear all data and retry once
+        try {
+          localStorage.clear()
+          localStorage.setItem('carbonx_orders', JSON.stringify(demoData.openOrders))
+          localStorage.setItem('carbonx_portfolio', JSON.stringify(demoData.portfolio))
+          localStorage.setItem('carbonx_order_history', JSON.stringify(demoData.orderHistory))
+        } catch (retryError) {
+          console.error('Failed to load demo data after clearing storage:', retryError)
+        }
+      } else {
+        console.error('Failed to load demo data:', error)
+      }
+    }
   }
 }

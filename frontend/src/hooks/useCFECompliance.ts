@@ -18,6 +18,38 @@ export interface CFEComplianceData {
 
 const STORAGE_KEY = 'carbonx_cfe_compliance'
 
+// Safe localStorage helpers with error handling
+const safeSetItem = (key: string, value: unknown) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+      console.warn(`localStorage quota exceeded for ${key}, using in-memory only`)
+    } else {
+      console.warn(`localStorage unavailable for ${key}`, error)
+    }
+  }
+}
+
+const safeGetItem = <T>(key: string, defaultValue: T): T => {
+  try {
+    const item = localStorage.getItem(key)
+    if (item === null) return defaultValue
+    return JSON.parse(item) as T
+  } catch (error) {
+    console.warn(`Corrupted data in ${key}, using defaults`, error)
+    return defaultValue
+  }
+}
+
+const safeRemoveItem = (key: string) => {
+  try {
+    localStorage.removeItem(key)
+  } catch (error) {
+    console.warn(`Failed to remove ${key} from localStorage`, error)
+  }
+}
+
 /**
  * useCFECompliance - Tracks hourly CFE (Carbon Free Energy) compliance
  *
@@ -41,16 +73,12 @@ export function useCFECompliance(threshold: number = 50): CFEComplianceData {
       return
     }
 
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        const data = JSON.parse(stored)
-        if (data.hourlyData) {
-          setHourlyData(data.hourlyData)
-        }
-      }
-    } catch (e) {
-      console.error('Failed to load CFE compliance data:', e)
+    const data = safeGetItem<{ threshold: number; hourlyData: HourlyComplianceData[] } | null>(
+      STORAGE_KEY,
+      null
+    )
+    if (data?.hourlyData) {
+      setHourlyData(data.hourlyData)
     }
   }, [])
 
@@ -68,11 +96,7 @@ export function useCFECompliance(threshold: number = 50): CFEComplianceData {
 
     // Only save if we have data
     if (hourlyData.length > 0) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ threshold, hourlyData }))
-      } catch (e) {
-        console.error('Failed to save CFE compliance data:', e)
-      }
+      safeSetItem(STORAGE_KEY, { threshold, hourlyData })
     }
   }, [threshold, hourlyData])
 
@@ -144,7 +168,7 @@ export function useCFECompliance(threshold: number = 50): CFEComplianceData {
     setHourlyData([])
 
     if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
-      localStorage.removeItem(STORAGE_KEY)
+      safeRemoveItem(STORAGE_KEY)
     }
   }, [])
 

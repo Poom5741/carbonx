@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { loadDemoData } from '@/data/demoData'
 
 export interface UseResetDemoReturn {
@@ -23,6 +23,7 @@ const STORAGE_KEYS = {
  */
 export function useResetDemo(): UseResetDemoReturn {
   const [isResetting, setIsResetting] = useState(false)
+  const isResettingRef = useRef(false)
 
   const clearStorage = useCallback(() => {
     try {
@@ -39,6 +40,13 @@ export function useResetDemo(): UseResetDemoReturn {
   }, [])
 
   const resetDemo = useCallback(async () => {
+    // Prevent rapid double-clicks (debouncing)
+    // Check state first, then ref for synchronous guard
+    if (isResetting) return
+    if (isResettingRef.current) return
+
+    // Set both state and ref immediately
+    isResettingRef.current = true
     setIsResetting(true)
 
     try {
@@ -53,6 +61,9 @@ export function useResetDemo(): UseResetDemoReturn {
     } catch (error) {
       console.error('Failed to reset demo:', error)
     } finally {
+      // Reset both state and ref immediately after completion
+      // The ref check at the start prevents concurrent calls
+      isResettingRef.current = false
       setIsResetting(false)
     }
   }, [clearStorage])

@@ -33,6 +33,35 @@ export interface Metadata {
 
 const STORAGE_KEY = 'carbonx_hourly_matching'
 
+// Safe localStorage helpers with error handling
+const safeSetItem = (key: string, value: unknown) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+      console.warn(`localStorage quota exceeded for ${key}, using in-memory only`)
+    } else {
+      console.warn(`localStorage unavailable for ${key}`, error)
+    }
+  }
+}
+
+const safeGetItem = <T>(key: string, defaultValue: T): T => {
+  try {
+    const item = localStorage.getItem(key)
+    if (item === null) return defaultValue
+    return JSON.parse(item) as T
+  } catch (error) {
+    console.warn(`Corrupted data in ${key}, using defaults`, error)
+    return defaultValue
+  }
+}
+
+interface StoredData {
+  date: string
+  data: HourlyData[]
+}
+
 const generateMockHourlyData = (): HourlyData[] => {
   return Array.from({ length: 24 }, (_, hour) => {
     // Simulate solar generation (peaks midday)
@@ -84,15 +113,14 @@ export function useHourlyMatching() {
       setLoading(true)
       setError(null)
       try {
-        const stored = localStorage.getItem(STORAGE_KEY)
+        const stored = safeGetItem<StoredData | null>(STORAGE_KEY, null)
         if (stored) {
-          const parsed = JSON.parse(stored)
           // Check if data is from today
-          const storedDate = parsed.date
+          const storedDate = stored.date
           const today = new Date().toDateString()
 
           if (storedDate === today) {
-            setData(parsed.data)
+            setData(stored.data)
             setLoading(false)
             return
           }
@@ -103,10 +131,10 @@ export function useHourlyMatching() {
         setData(newData)
 
         // Save to localStorage
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        safeSetItem(STORAGE_KEY, {
           date: new Date().toDateString(),
           data: newData,
-        }))
+        })
       } catch (err) {
         const error = err instanceof Error ? err : new Error('Failed to load energy data')
         console.error('Failed to load hourly matching data:', error)
@@ -221,10 +249,10 @@ export function useHourlyMatching() {
     try {
       const newData = generateMockHourlyData()
       setData(newData)
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      safeSetItem(STORAGE_KEY, {
         date: new Date().toDateString(),
         data: newData,
-      }))
+      })
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to refresh data')
       setError(error)
@@ -240,10 +268,10 @@ export function useHourlyMatching() {
       try {
         const newData = generateMockHourlyData()
         setData(newData)
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        safeSetItem(STORAGE_KEY, {
           date: new Date().toDateString(),
           data: newData,
-        }))
+        })
       } catch (err) {
         const error = err instanceof Error ? err : new Error('Failed to retry data load')
         setError(error)

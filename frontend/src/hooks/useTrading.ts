@@ -48,6 +48,38 @@ const STORAGE_KEYS = {
   ORDER_HISTORY: 'carbonx_order_history'
 }
 
+// Safe localStorage helpers with error handling
+const safeSetItem = (key: string, value: unknown) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+      console.warn(`localStorage quota exceeded for ${key}, using in-memory only`)
+    } else {
+      console.warn(`localStorage unavailable for ${key}`, error)
+    }
+  }
+}
+
+const safeGetItem = <T>(key: string, defaultValue: T): T => {
+  try {
+    const item = localStorage.getItem(key)
+    if (item === null) return defaultValue
+    return JSON.parse(item) as T
+  } catch (error) {
+    console.warn(`Corrupted data in ${key}, using defaults`, error)
+    return defaultValue
+  }
+}
+
+const safeRemoveItem = (key: string) => {
+  try {
+    localStorage.removeItem(key)
+  } catch (error) {
+    console.warn(`Failed to remove ${key} from localStorage`, error)
+  }
+}
+
 export function useTrading() {
   const [orders, setOrders] = useState<Order[]>([])
   const [portfolio, setPortfolio] = useState<Portfolio>({
@@ -67,22 +99,19 @@ export function useTrading() {
       return
     }
 
-    try {
-      const storedOrders = localStorage.getItem(STORAGE_KEYS.ORDERS)
-      const storedPortfolio = localStorage.getItem(STORAGE_KEYS.PORTFOLIO)
-      const storedHistory = localStorage.getItem(STORAGE_KEYS.ORDER_HISTORY)
+    const storedOrders = safeGetItem<Order[]>(STORAGE_KEYS.ORDERS, [])
+    const storedPortfolio = safeGetItem<Portfolio>(STORAGE_KEYS.PORTFOLIO, {
+      balance: INITIAL_BALANCE,
+      holdings: {}
+    })
+    const storedHistory = safeGetItem<Order[]>(STORAGE_KEYS.ORDER_HISTORY, [])
 
-      if (storedOrders) {
-        setOrders(JSON.parse(storedOrders))
-      }
-      if (storedPortfolio) {
-        setPortfolio(JSON.parse(storedPortfolio))
-      }
-      if (storedHistory) {
-        setOrderHistory(JSON.parse(storedHistory))
-      }
-    } catch (e) {
-      console.error('Failed to load from localStorage:', e)
+    if (storedOrders.length > 0) {
+      setOrders(storedOrders)
+    }
+    setPortfolio(storedPortfolio)
+    if (storedHistory.length > 0) {
+      setOrderHistory(storedHistory)
     }
   }, [])
 
@@ -92,9 +121,9 @@ export function useTrading() {
       return
     }
     if (orders.length > 0) {
-      localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders))
+      safeSetItem(STORAGE_KEYS.ORDERS, orders)
     } else {
-      localStorage.removeItem(STORAGE_KEYS.ORDERS)
+      safeRemoveItem(STORAGE_KEYS.ORDERS)
     }
   }, [orders])
 
@@ -103,7 +132,7 @@ export function useTrading() {
     if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
       return
     }
-    localStorage.setItem(STORAGE_KEYS.PORTFOLIO, JSON.stringify(portfolio))
+    safeSetItem(STORAGE_KEYS.PORTFOLIO, portfolio)
   }, [portfolio])
 
   // Save order history
@@ -112,9 +141,9 @@ export function useTrading() {
       return
     }
     if (orderHistory.length > 0) {
-      localStorage.setItem(STORAGE_KEYS.ORDER_HISTORY, JSON.stringify(orderHistory))
+      safeSetItem(STORAGE_KEYS.ORDER_HISTORY, orderHistory)
     } else {
-      localStorage.removeItem(STORAGE_KEYS.ORDER_HISTORY)
+      safeRemoveItem(STORAGE_KEYS.ORDER_HISTORY)
     }
   }, [orderHistory])
 
@@ -280,9 +309,9 @@ export function useTrading() {
     setOrderHistory([])
     setPortfolio({ balance: INITIAL_BALANCE, holdings: {} })
     if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
-      localStorage.removeItem(STORAGE_KEYS.ORDERS)
-      localStorage.removeItem(STORAGE_KEYS.PORTFOLIO)
-      localStorage.removeItem(STORAGE_KEYS.ORDER_HISTORY)
+      safeRemoveItem(STORAGE_KEYS.ORDERS)
+      safeRemoveItem(STORAGE_KEYS.PORTFOLIO)
+      safeRemoveItem(STORAGE_KEYS.ORDER_HISTORY)
     }
   }, [])
 
