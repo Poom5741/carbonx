@@ -69,7 +69,7 @@ describe('ConnectionStatus', () => {
     });
 
     it('should show connecting state after reconnect button click', () => {
-      const { container } = render(<ConnectionStatus forceDisconnected={true} />);
+      render(<ConnectionStatus forceDisconnected={true} />);
 
       const reconnectButton = screen.getByTestId('reconnect-button');
       reconnectButton.click();

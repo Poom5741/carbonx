@@ -89,7 +89,7 @@ describe('useResetDemo - TDG RED Phase', () => {
       await result.current.resetDemo()
 
       const portfolio = JSON.parse(localStorage.getItem('carbonx_portfolio')!)
-      const history = JSON.parse(localStorage.getItem('carbonx_order_history')!)
+      JSON.parse(localStorage.getItem('carbonx_order_history')!)
 
       // Calculate total value
       const holdingsValue = Object.values(portfolio.holdings).reduce(

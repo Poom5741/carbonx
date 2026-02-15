@@ -56,7 +56,7 @@ const Navbar = ({ mode, scrolled: _externalScrolled, isLoggedIn, onLoginClick, o
           : 'h-14 lg:h-16 bg-transparent'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+      <div className="w-full px-4 sm:px-6 lg:px-8 h-full">
         <div className="flex items-center justify-between h-full">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">

@@ -12,6 +12,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { ErrorBoundary } from './ErrorBoundary'
+import { ErrorState } from './ErrorBoundary'
 
 // Mock console.error to avoid cluttering test output
 const originalError = console.error
@@ -138,7 +139,7 @@ describe('ErrorBoundary - TDG RED Phase', () => {
         shouldThrow = false
       })
 
-      const { rerender } = render(
+      render(
         <ErrorBoundary onReset={onReset} resetKey={shouldThrow}>
           <ThrowSometimes />
         </ErrorBoundary>
@@ -157,8 +158,8 @@ describe('ErrorBoundary - TDG RED Phase', () => {
 
   describe('Data Load Error State', () => {
     it('should render data load error component', () => {
-      const { container } = render(
-        <ErrorBoundary.ErrorState
+      render(
+        <ErrorState
           type="data-load"
           title="Energy Data Temporarily Unavailable"
           message="We're having trouble connecting to the energy monitoring system."
@@ -174,7 +175,7 @@ describe('ErrorBoundary - TDG RED Phase', () => {
       const onRetry = vi.fn()
 
       render(
-        <ErrorBoundary.ErrorState
+        <ErrorState
           type="data-load"
           title="Connection Error"
           message="Unable to load data"
@@ -190,7 +191,7 @@ describe('ErrorBoundary - TDG RED Phase', () => {
   describe('Critical Error State', () => {
     it('should render critical error component', () => {
       render(
-        <ErrorBoundary.ErrorState
+        <ErrorState
           type="critical"
           title="Something Unexpected Happened"
           message="Our team has been notified."

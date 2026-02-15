@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getDemoData, type DemoData } from './demoData'
+import { getDemoData } from './demoData'
 
 describe('demoData - TDG RED Phase', () => {
   describe('Positive PnL Requirement', () => {

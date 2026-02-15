@@ -24,7 +24,7 @@ const generateOrderId = (index: number): string =>
   `order-demo-${Date.now()}-${index}-${Math.random().toString(36).substr(2, 9)}`
 
 // Demo trading pairs
-const PAIRS = ['REC/USDT', 'SOL/USDT', 'WIND/USDT', 'BCT/USDT']
+const PAIRS = ['TVER/USDT', 'TVER-P/USDT', 'I-REC/USDT', 'CER/USDT', 'VCU/USDT', 'REC/USDT']
 
 // Generate realistic order history with profitable trades
 const generateOrderHistory = (): Order[] => {
@@ -33,10 +33,12 @@ const generateOrderHistory = (): Order[] => {
 
   // Strategy: Buy low, sell high for profit
   const priceRanges: Record<string, { min: number; max: number }> = {
-    'REC/USDT': { min: 38, max: 52 },
-    'SOL/USDT': { min: 85, max: 145 },
-    'WIND/USDT': { min: 22, max: 38 },
-    'BCT/USDT': { min: 18, max: 32 }
+    'TVER/USDT': { min: 35, max: 48 },
+    'TVER-P/USDT': { min: 40, max: 52 },
+    'I-REC/USDT': { min: 32, max: 45 },
+    'CER/USDT': { min: 28, max: 40 },
+    'VCU/USDT': { min: 12, max: 22 },
+    'REC/USDT': { min: 38, max: 52 }
   }
 
   let pairIndex = 0
@@ -84,10 +86,12 @@ const calculatePortfolio = (orderHistory: Order[]): Portfolio => {
 
   // Current market prices (higher than buy prices for profit)
   const currentPrices: Record<string, number> = {
-    'REC': 48.50,
-    'SOL': 138.00,
-    'WIND': 35.00,
-    'BCT': 29.50
+    'TVER': 46.50,
+    'TVER-P': 50.00,
+    'I-REC': 43.00,
+    'CER': 38.50,
+    'VCU': 20.00,
+    'REC': 48.50
   }
 
   // Process filled orders

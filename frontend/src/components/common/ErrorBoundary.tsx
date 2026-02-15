@@ -196,6 +196,4 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 }
 
-ErrorBoundary.ErrorState = ErrorState
-
 export default ErrorBoundary

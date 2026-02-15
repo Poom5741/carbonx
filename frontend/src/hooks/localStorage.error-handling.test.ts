@@ -12,7 +12,7 @@
  * that we will implement in the GREEN phase.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook, waitFor, act } from '@testing-library/react'
 import { useTrading } from './useTrading'
 import { useHourlyMatching } from './matching/useHourlyMatching'
@@ -28,6 +28,7 @@ describe('localStorage Error Handling (TDG RED Phase)', () => {
     _quotaExceeded: boolean
     _unavailable: boolean
     _corrupted: boolean
+    _store: Record<string, string>
   }
 
   beforeEach(() => {
